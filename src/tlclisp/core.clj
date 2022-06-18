@@ -1,7 +1,4 @@
-(ns tlclisp.core
-  (:gen-class))
+(ns tlclisp.core (:gen-class)
+    (:require [tlclisp.interpreter :as interpreter]))
 
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  (println "Hello, World!"))
+(interpreter/repl)

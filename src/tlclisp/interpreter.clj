@@ -1,3 +1,5 @@
+(ns tlclisp.interpreter)
+
 (require '[clojure.string :refer [blank? ends-with? lower-case]] '[clojure.java.io :refer [reader]])
 
 (defn spy
@@ -366,68 +368,28 @@
 ; FUNCIONES QUE DEBEN SER IMPLEMENTADAS PARA COMPLETAR EL INTERPRETE DE TLC-LISP
 ; (ADEMAS DE COMPLETAR 'EVALUAR' Y 'APLICAR-FUNCION-PRIMITIVA'):
 
-; user=> (controlar-aridad '(a b c) 3)
-; 3
-; user=> (controlar-aridad '(a b c) 2)
-; (*error* too-many-args)
-; user=> (controlar-aridad '(a b c) 4)
-; (*error* too-few-args) 
 (defn controlar-aridad
   "Si la longitud de una lista dada es la esperada, devuelve esa longitud.
    Si no, devuelve una lista con un mensaje de error (una lista con *error* como primer elemento)."
   [L, n]
   (let [real-length (count L)]
     (cond
-      (> real-length n) '("*error*", "too-many-args")
-      (< real-length n) '("*error*", "too-few-args")
+      (> real-length n) (list "*error*" "too-many-args")
+      (< real-length n) (list "*error*" "too-few-args")
       :else n)))
 
 
-; user=> (igual? 1 1)
-; true
-; user=> (igual? 1 2)
-; false
-; user=> (igual? 'a 'a)
-; true
-; user=> (igual? 'A 'A)
-; true
-; user=> (igual? 'a 'A)
-; true
-; user=> (igual? 'A 'a)
-; true
-; user=> (igual? 'a 'b)
-; false
-; user=> (igual? '(a b c) '(A B C))
-; true
-; user=> (igual? '(a b c) '(A B D))
-; false
-; user=> (igual? nil nil)
-; true
-; user=> (igual? nil 'NIL)
-; true
-; user=> (igual? 'NIL nil)
-; true
-; user=> (igual? 'NIL 'NIL)
-; true
-; user=> (igual? nil ())
-; true
-; user=> (igual? 'NIL ())
-; true
-; user=> (igual? () ())
-; true
-; user=> (igual? () '(nil))
-; false
-; user=> (igual? "a" "a")
-; true
-; user=> (igual? "a" "A")
-; false
-; user=> (igual? 'a "a")
-; false
-; user=> (igual? 'a "A")
-; false
-(defn igual?
-  "Verifica la igualdad entre dos elementos al estilo de TLC-LISP (case-insensitive).")
+(defn is-lisp-nil
+  "Devuelte true si el valor es equlivalente a nil en TLC-LISP"
+  [n]
+  (or (nil? n) (= n '()) (= n 'NIL)))
 
+(defn igual?
+  "Verifica la igualdad entre dos elementos al estilo de TLC-LISP (case-insensitive)."
+  [a, b]
+  (let [str-a (str (cond (is-lisp-nil a) nil :else a))
+        str-b (str (cond (is-lisp-nil b) nil :else b))]
+    (= (lower-case str-a) (lower-case str-b))))
 
 ; user=> (error? '(*error* too-few-args))
 ; true
@@ -447,8 +409,8 @@
 ; false
 ; user=> (error? nil)
 ; false
-(defn error?
-  "Devuelve true o false, segun sea o no el arg. un mensaje de error (una lista con *error* como primer elemento).")
+;; (defn error?
+;;   "Devuelve true o false, segun sea o no el arg. un mensaje de error (una lista con *error* como primer elemento).")
 
 
 ; user=> (revisar-fnc '(*error* too-few-args))
@@ -461,8 +423,8 @@
 ; nil
 ; user=> (revisar-fnc ())
 ; nil
-(defn revisar-fnc
-  "Si la lista es un mensaje de error, lo devuelve; si no, devuelve nil.")
+;; (defn revisar-fnc
+;;   "Si la lista es un mensaje de error, lo devuelve; si no, devuelve nil.")
 
 
 ; user=> (revisar-lae '(1 2 3))
@@ -475,8 +437,8 @@
 ; (*error* too-few-args)
 ; user=> (revisar-lae '(1 (*error* too-few-args) (*error* too-many-args) 3))
 ; (*error* too-few-args)
-(defn revisar-lae
-  "Devuelve el primer elemento que es un mensaje de error. Si no hay ninguno, devuelve nil.")
+;; (defn revisar-lae
+;;   "Devuelve el primer elemento que es un mensaje de error. Si no hay ninguno, devuelve nil.")
 
 
 ; user=> (actualizar-amb '(a 1 b 2 c 3) 'd 4)
@@ -487,18 +449,18 @@
 ; (a 1 b 2 c 3)
 ; user=> (actualizar-amb () 'b 7)
 ; (b 7)
-(defn actualizar-amb
-  "Devuelve un ambiente actualizado con una clave (nombre de la variable o funcion) y su valor. 
-  Si el valor es un error, el ambiente no se modifica. De lo contrario, se le carga o reemplaza el valor.")
+;; (defn actualizar-amb
+;;   "Devuelve un ambiente actualizado con una clave (nombre de la variable o funcion) y su valor. 
+;;   Si el valor es un error, el ambiente no se modifica. De lo contrario, se le carga o reemplaza el valor.")
 
 
 ; user=> (buscar 'c '(a 1 b 2 c 3 d 4 e 5))
 ; 3
 ; user=> (buscar 'f '(a 1 b 2 c 3 d 4 e 5))
 ; (*error* unbound-symbol f)
-(defn buscar
-  "Busca una clave en un ambiente (una lista con claves en las posiciones impares [1, 3, 5...] y valores en las pares [2, 4, 6...]
-   y devuelve el valor asociado. Devuelve un mensaje de error si no la encuentra.")
+;; (defn buscar
+;;   "Busca una clave en un ambiente (una lista con claves en las posiciones impares [1, 3, 5...] y valores en las pares [2, 4, 6...]
+;;    y devuelve el valor asociado. Devuelve un mensaje de error si no la encuentra.")
 
 ; user=> (fnc-append '( (1 2) ))
 ; (*error* too-few-args)
@@ -518,16 +480,16 @@
 ; nil
 ; user=> (fnc-append '(() ()))
 ; nil
-(defn fnc-append
-  "Devuelve el resultado de fusionar 2 sublistas.")
+;; (defn fnc-append
+;;   "Devuelve el resultado de fusionar 2 sublistas.")
 
 
 ; user=> (fnc-env () '(a 1 b 2) '(c 3 d 4))
 ; (a 1 b 2 c 3 d 4)
 ; user=> (fnc-env '(5) '(a 1 b 2) '(c 3 d 4))
 ; (*error* too-many-args)
-(defn fnc-env
-  "Devuelve la fusion de los ambientes global y local.")
+;; (defn fnc-env
+;;   "Devuelve la fusion de los ambientes global y local.")
 
 
 ; user=> (fnc-equal '(1 1))
@@ -550,8 +512,8 @@
 ; (*error* too-few-args)
 ; user=> (fnc-equal '(A a A))
 ; (*error* too-many-args)
-(defn fnc-equal
-  "Compara 2 elementos. Si son iguales, devuelve t. Si no, nil.")
+;; (defn fnc-equal
+;;   "Compara 2 elementos. Si son iguales, devuelve t. Si no, nil.")
 
 
 ; user=> (fnc-read ())
@@ -580,8 +542,8 @@
 ; (*error* not-implemented)
 ; user=> (fnc-read '(1 2))
 ; (*error* not-implemented)
-(defn fnc-read
-  "Devuelve la lectura de un elemento de TLC-LISP desde la terminal/consola.")
+;; (defn fnc-read
+;;   "Devuelve la lectura de un elemento de TLC-LISP desde la terminal/consola.")
 
 
 ; user=> (fnc-terpri ())
@@ -591,8 +553,8 @@
 ; (*error* not-implemented)
 ; user=> (fnc-terpri '(1 2))
 ; (*error* not-implemented)
-(defn fnc-terpri
-  "Imprime un salto de línea y devuelve nil.")
+;; (defn fnc-terpri
+;;   "Imprime un salto de línea y devuelve nil.")
 
 
 ; user=> (fnc-add ())
@@ -611,8 +573,8 @@
 ; (*error* number-expected A)
 ; user=> (fnc-add '(3 4 A 6))
 ; (*error* number-expected A)
-(defn fnc-add
-  "Suma los elementos de una lista. Minimo 2 elementos.")
+;; (defn fnc-add
+;;   "Suma los elementos de una lista. Minimo 2 elementos.")
 
 
 ; user=> (fnc-sub ())
@@ -631,8 +593,8 @@
 ; (*error* number-expected A)
 ; user=> (fnc-sub '(3 4 A 6))
 ; (*error* number-expected A)
-(defn fnc-sub
-  "Resta los elementos de un lista. Minimo 1 elemento.")
+;; (defn fnc-sub
+;;   "Resta los elementos de un lista. Minimo 1 elemento.")
 
 
 ; user=> (fnc-lt ())
@@ -651,8 +613,8 @@
 ; (*error* number-expected A)
 ; user=> (fnc-lt '(1 2 3))
 ; (*error* too-many-args)
-(defn fnc-lt
-  "Devuelve t si el primer numero es menor que el segundo; si no, nil.")
+;; (defn fnc-lt
+;;   "Devuelve t si el primer numero es menor que el segundo; si no, nil.")
 
 
 ; user=> (fnc-gt ())
@@ -671,8 +633,8 @@
 ; (*error* number-expected A)
 ; user=> (fnc-gt '(1 2 3))
 ; (*error* too-many-args)
-(defn fnc-gt
-  "Devuelve t si el primer numero es mayor que el segundo; si no, nil.")
+;; (defn fnc-gt
+;;   "Devuelve t si el primer numero es mayor que el segundo; si no, nil.")
 
 
 ; user=> (fnc-ge ())
@@ -691,8 +653,8 @@
 ; (*error* number-expected A)
 ; user=> (fnc-ge '(1 2 3))
 ; (*error* too-many-args)
-(defn fnc-ge
-  "Devuelve t si el primer numero es mayor o igual que el segundo; si no, nil.")
+;; (defn fnc-ge
+;;   "Devuelve t si el primer numero es mayor o igual que el segundo; si no, nil.")
 
 
 ; user=> (fnc-reverse ())
@@ -707,8 +669,8 @@
 ; (3 2 1)
 ; user=> (fnc-reverse '((1 2 3)(4)) )
 ; (*error* too-many-args)
-(defn fnc-reverse
-  "Devuelve una lista con sus elementos en orden inverso.")
+;; (defn fnc-reverse
+;;   "Devuelve una lista con sus elementos en orden inverso.")
 
 
 ; user=> (evaluar-escalar 32 '(v 1 w 3 x 6) '(x 5 y 11 z "hola"))
@@ -725,8 +687,8 @@
 ; (5 (v 1 w 3 x 6))
 ; user=> (evaluar-escalar 'n '(v 1 w 3 x 6) '(x 5 y 11 z "hola"))
 ; ((*error* unbound-symbol n) (v 1 w 3 x 6))
-(defn evaluar-escalar
-  "Evalua una expresion escalar consultando, si corresponde, los ambientes local y global. Devuelve una lista con el resultado y un ambiente.")
+;; (defn evaluar-escalar
+;;   "Evalua una expresion escalar consultando, si corresponde, los ambientes local y global. Devuelve una lista con el resultado y un ambiente.")
 
 
 ; user=> (evaluar-de '(de f (x)) '(x 1))
@@ -755,8 +717,8 @@
 ; ((*error* symbol expected 2) (x 1))
 ; user=> (evaluar-de '(de nil (x) 2) '(x 1))
 ; ((*error* cannot-set nil) (x 1))
-(defn evaluar-de
-  "Evalua una forma 'de'. Devuelve una lista con el resultado y un ambiente actualizado con la definicion.")
+;; (defn evaluar-de
+;;   "Evalua una forma 'de'. Devuelve una lista con el resultado y un ambiente actualizado con la definicion.")
 
 
 ; user=> (evaluar-if '(if t) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
@@ -793,8 +755,8 @@
 ; (8 (gt gt nil nil t t v 1 w 3 x 6))
 ; user=> (evaluar-if '(if (gt 0 2) a (setq m 8)) '(gt gt nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
 ; (8 (gt gt nil nil t t v 1 w 3 x 6 m 8))
-(defn evaluar-if
-  "Evalua una forma 'if'. Devuelve una lista con el resultado y un ambiente eventualmente modificado.")
+;; (defn evaluar-if
+;;   "Evalua una forma 'if'. Devuelve una lista con el resultado y un ambiente eventualmente modificado.")
 
 
 ; user=> (evaluar-or '(or) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
@@ -823,8 +785,8 @@
 ; (t (nil nil t t w 5 x 4))
 ; user=> (evaluar-or '(or nil nil nil nil) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
 ; (nil (nil nil t t w 5 x 4))
-(defn evaluar-or
-  "Evalua una forma 'or'. Devuelve una lista con el resultado y un ambiente.")
+;; (defn evaluar-or
+;;   "Evalua una forma 'or'. Devuelve una lista con el resultado y un ambiente.")
 
 
 ; user=> (evaluar-setq '(setq) '(nil nil t t + add w 5 x 4) '(x 1 y nil z 3))
@@ -853,8 +815,8 @@
 ; ((*error* list expected nil) (nil nil t t + add w 5 x 7))
 ; user=> (evaluar-setq '(setq x 7 y 8 z 9) '(nil nil t t + add w 5 x 4) '(y nil z 3))
 ; (9 (nil nil t t + add w 5 x 7 y 8 z 9))
-(defn evaluar-setq
-  "Evalua una forma 'setq'. Devuelve una lista con el resultado y un ambiente actualizado.")
+;; (defn evaluar-setq
+;;   "Evalua una forma 'setq'. Devuelve una lista con el resultado y un ambiente actualizado.")
 
 
 ; Al terminar de cargar el archivo en el REPL de Clojure (con load-file), se debe devolver true.
