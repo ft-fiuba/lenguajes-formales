@@ -409,8 +409,13 @@
 ; false
 ; user=> (error? nil)
 ; false
-;; (defn error?
-;;   "Devuelve true o false, segun sea o no el arg. un mensaje de error (una lista con *error* como primer elemento).")
+(defn error?
+  "Devuelve true o false, segun sea o no el arg. un mensaje de error (una lista con *error* como primer elemento)."
+  [L]
+  (cond
+    (not (list? L)) false
+    (empty? L) false
+    :else (igual? (nth L 0) "*error*")))
 
 
 ; user=> (revisar-fnc '(*error* too-few-args))
