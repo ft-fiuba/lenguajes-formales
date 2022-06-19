@@ -1,16 +1,8 @@
 (ns tlclisp.revisar-fnc-test
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [revisar-fnc]]))
-; user=> (revisar-fnc )
-; (*error* too-few-args)
-; user=> (revisar-fnc '(too-few-args))
-; nil
-; user=> (revisar-fnc )
-; nil
-; user=> (revisar-fnc nil)
-; nil
-; user=> (revisar-fnc ())
-; nil
+
+
 (deftest revisar-fnc-test
   (testing "Revisar una lista con error como string devudelve la lista"
     (let [L '("*error*" "too-few-args")]

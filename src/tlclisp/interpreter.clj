@@ -413,13 +413,13 @@
 
 
 ;;---------------------------------------------------------------------------------------------------;;
-(defn _firt-or-nil [L]
+(defn _first-or-nil [L]
   (cond (empty? L) nil :else (first L)))
 
 (defn revisar-lae
   "Devuelve el primer elemento que es un mensaje de error. Si no hay ninguno, devuelve nil."
   [L]
-  (_firt-or-nil (filter error? L)))
+  (_first-or-nil (filter error? L)))
 ;;---------------------------------------------------------------------------------------------------;;
 
 
@@ -431,18 +431,35 @@
 ; (a 1 b 2 c 3)
 ; user=> (actualizar-amb () 'b 7)
 ; (b 7)
+
+;;---------------------------------------------------------------------------------------------------;;
 ;; (defn actualizar-amb
 ;;   "Devuelve un ambiente actualizado con una clave (nombre de la variable o funcion) y su valor. 
-;;   Si el valor es un error, el ambiente no se modifica. De lo contrario, se le carga o reemplaza el valor.")
+;;   Si el valor es un error, el ambiente no se modifica. De lo contrario, se le carga o reemplaza el valor."
+;;   [] (nil))
+;;---------------------------------------------------------------------------------------------------;;
 
 
-; user=> (buscar 'c '(a 1 b 2 c 3 d 4 e 5))
-; 3
-; user=> (buscar 'f '(a 1 b 2 c 3 d 4 e 5))
-; (*error* unbound-symbol f)
-;; (defn buscar
-;;   "Busca una clave en un ambiente (una lista con claves en las posiciones impares [1, 3, 5...] y valores en las pares [2, 4, 6...]
-;;    y devuelve el valor asociado. Devuelve un mensaje de error si no la encuentra.")
+
+;;---------------------------------------------------------------------------------------------------;;
+(defn _amb-keys [A]
+  (map (fn [t] (nth t 1))
+       (filter (fn [t] (odd? (nth t 0))) (map list (range 1 (inc (count A))) A))))
+
+(defn _amb-values [A]
+  (map (fn [t] (nth t 1))
+       (filter (fn [t] (even? (nth t 0))) (map list (range 1 (inc (count A))) A))))
+
+(defn buscar
+  "Busca una clave en un ambiente (una lista con claves en las posiciones impares [1, 3, 5...] 
+   y valores en las pares [2, 4, 6...] y devuelve el valor asociado.
+   Devuelve un mensaje de error si no la encuentra."
+  [key, A]
+  (let [encontrado (_first-or-nil (filter (fn [t] (= key (nth t 0))) (map list (_amb-keys A) (_amb-values A))))]
+    (cond (some? encontrado) (nth encontrado 1)
+          :else (list "*error*" "unbound-symbol" key))))
+;;---------------------------------------------------------------------------------------------------;;
+
 
 ; user=> (fnc-append '( (1 2) ))
 ; (*error* too-few-args)
