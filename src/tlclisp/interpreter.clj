@@ -558,24 +558,13 @@
 ;;   "Imprime un salto de línea y devuelve nil.")
 
 
-; user=> (fnc-add ())
-; (*error* too-few-args)
-; user=> (fnc-add '(3))
-; (*error* too-few-args)
-; user=> (fnc-add '(3 4)) 
-; 7
-; user=> (fnc-add '(3 4 5))
-; 12
-; user=> (fnc-add '(3 4 5 6))
-; 18
-; user=> (fnc-add '(A 4 5 6))
-; (*error* number-expected A)
-; user=> (fnc-add '(3 A 5 6))
-; (*error* number-expected A)
-; user=> (fnc-add '(3 4 A 6))
-; (*error* number-expected A)
-;; (defn fnc-add
-;;   "Suma los elementos de una lista. Minimo 2 elementos.")
+(defn fnc-add
+  "Suma los elementos de una lista. Minimo 2 elementos."
+  [args]
+  (cond
+    (>= 1 (count args)) (_build-error 'too-few-args)
+    (not-every? number? args) (_build-error 'number-expected (first (filter (fn [e] (not (number? e))) args)))
+    :else (reduce + args)))
 
 
 ; user=> (fnc-sub ())
