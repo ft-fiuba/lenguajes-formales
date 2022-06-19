@@ -378,10 +378,10 @@
       (> real-length n) (list "*error*" "too-many-args")
       (< real-length n) (list "*error*" "too-few-args")
       :else n)))
-  ;;---------------------------------------------------------------------------------------------------;;
+;;---------------------------------------------------------------------------------------------------;;
 
 ;;---------------------------------------------------------------------------------------------------;;
-(defn is-lisp-nil
+(defn _is-lisp-nil
   "Devuelte true si el valor es equlivalente a nil en TLC-LISP"
   [n]
   (or (nil? n) (= n '()) (= n 'NIL)))
@@ -389,8 +389,8 @@
 (defn igual?
   "Verifica la igualdad entre dos elementos al estilo de TLC-LISP (case-insensitive)."
   [a, b]
-  (let [str-a (str (cond (is-lisp-nil a) nil :else a))
-        str-b (str (cond (is-lisp-nil b) nil :else b))]
+  (let [str-a (str (cond (_is-lisp-nil a) nil :else a))
+        str-b (str (cond (_is-lisp-nil b) nil :else b))]
     (= (lower-case str-a) (lower-case str-b))))
 ;;---------------------------------------------------------------------------------------------------;;
 
@@ -411,18 +411,16 @@
   (cond (error? L) L :else nil))
 ;;---------------------------------------------------------------------------------------------------;;
 
-; user=> (revisar-lae '(1 2 3))
-; nil
-; user=> (revisar-lae nil)
-; nil
-; user=> (revisar-lae ())
-; nil
-; user=> (revisar-lae '(1 (*error* too-few-args) 3))
-; (*error* too-few-args)
-; user=> (revisar-lae '(1 (*error* too-few-args) (*error* too-many-args) 3))
-; (*error* too-few-args)
+
+;;---------------------------------------------------------------------------------------------------;;
+(defn _firt-or-nil [L]
+  (cond (empty? L) nil :else (first L)))
+
 (defn revisar-lae
-  "Devuelve el primer elemento que es un mensaje de error. Si no hay ninguno, devuelve nil.")
+  "Devuelve el primer elemento que es un mensaje de error. Si no hay ninguno, devuelve nil."
+  [L]
+  (_firt-or-nil (filter error? L)))
+;;---------------------------------------------------------------------------------------------------;;
 
 
 ; user=> (actualizar-amb '(a 1 b 2 c 3) 'd 4)
