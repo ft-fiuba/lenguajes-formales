@@ -598,26 +598,16 @@
 ;;   "Resta los elementos de un lista. Minimo 1 elemento.")
 
 
-; user=> (fnc-lt ())
-; (*error* too-few-args)
-; user=> (fnc-lt '(1))
-; (*error* too-few-args)
-; user=> (fnc-lt '(1 2))
-; t
-; user=> (fnc-lt '(1 1))
-; nil
-; user=> (fnc-lt '(2 1))
-; nil
-; user=> (fnc-lt '(A 1))
-; (*error* number-expected A)
-; user=> (fnc-lt '(1 A))
-; (*error* number-expected A)
-; user=> (fnc-lt '(1 2 3))
-; (*error* too-many-args)
-;; (defn fnc-lt
-;;   "Devuelve t si el primer numero es menor que el segundo; si no, nil.")
 
-
+(defn fnc-lt
+  "Devuelve t si el primer numero es menor que el segundo; si no, nil."
+  [args]
+  (let [args-error (_check-num-args args 2)]
+    (cond
+      (some? args-error) args-error
+      (not (number? (nth args 0))) (_build-error 'number-expected (nth args 0))
+      (not (number? (nth args 1))) (_build-error 'number-expected (nth args 1))
+      :else (cond (< (nth args 0) (nth args 1)) 't :else nil))))
 
 (defn fnc-gt
   "Devuelve t si el primer numero es mayor que el segundo; si no, nil."
