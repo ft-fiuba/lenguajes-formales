@@ -392,6 +392,7 @@
   (let [str-a (str (cond (_is-lisp-nil a) nil :else a))
         str-b (str (cond (_is-lisp-nil b) nil :else b))]
     (= (lower-case str-a) (lower-case str-b))))
+
 ;;---------------------------------------------------------------------------------------------------;;
 
 ;;---------------------------------------------------------------------------------------------------;;
@@ -474,16 +475,32 @@
     :else (flatten (map (fn [t] (_replace-if-tuple-has-key t key value)) (_amb-to-tuples A)))))
 ;;---------------------------------------------------------------------------------------------------;;
 
+
+
 ;;---------------------------------------------------------------------------------------------------;;
+(defn _check-args [args, expected]
+  (cond
+    (> (count args) expected) '(*error* too-many-args)
+    (< (count args) expected) '(*error* too-few-args)
+    :else nil))
+
 (defn fnc-append
   "Devuelve el resultado de fusionar 2 sublistas."
-  [Ls]
-  (cond
-    (> (count Ls) 2) '(*error* too-many-args)
-    (< (count Ls) 2) '(*error* too-few-args)
+  [args]
+  (let [args-error (_check-args args, 2)]
+    (cond
+      (some? args-error) args-error
     ; Returns a seq on the collection. 
     ; If the collection is  empty, returns nil.
-    :else (seq (concat (nth Ls 0) (nth Ls 1)))))
+      :else (seq (concat (nth args 0) (nth args 1))))))
+
+(defn fnc-equal
+  "Compara 2 elementos. Si son iguales, devuelve t. Si no, nil."
+  [args]
+  (let [args-error (_check-args args, 2)]
+    (cond
+      (some? args-error) args-error
+      :else (cond (igual? (nth args 0) (nth args 1)) 't :else nil))))
 ;;---------------------------------------------------------------------------------------------------;;
 
 
@@ -495,28 +512,6 @@
 ;;   "Devuelve la fusion de los ambientes global y local.")
 
 
-; user=> (fnc-equal '(1 1))
-; t
-; user=> (fnc-equal '(A a))
-; t
-; user=> (fnc-equal '("1" "1"))
-; t
-; user=> (fnc-equal '(nil NIL))
-; t
-; user=> (fnc-equal '(1 2))
-; nil
-; user=> (fnc-equal '(A B))
-; nil
-; user=> (fnc-equal '("1" 1))
-; nil
-; user=> (fnc-equal ())
-; (*error* too-few-args)
-; user=> (fnc-equal '(A))
-; (*error* too-few-args)
-; user=> (fnc-equal '(A a A))
-; (*error* too-many-args)
-;; (defn fnc-equal
-;;   "Compara 2 elementos. Si son iguales, devuelve t. Si no, nil.")
 
 
 ; user=> (fnc-read ())
