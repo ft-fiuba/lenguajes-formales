@@ -422,39 +422,56 @@
 ;;---------------------------------------------------------------------------------------------------;;
 
 
-; user=> (actualizar-amb '(a 1 b 2 c 3) 'd 4)
-; (a 1 b 2 c 3 d 4)
-; user=> (actualizar-amb '(a 1 b 2 c 3) 'b 4)
-; (a 1 b 4 c 3)
-; user=> (actualizar-amb '(a 1 b 2 c 3) 'b (list '*error* 'mal 'hecho))
-; (a 1 b 2 c 3)
-; user=> (actualizar-amb () 'b 7)
-; (b 7)
+
+
+
+
+
 
 ;;---------------------------------------------------------------------------------------------------;;
-;; (defn actualizar-amb
-;;   "Devuelve un ambiente actualizado con una clave (nombre de la variable o funcion) y su valor. 
-;;   Si el valor es un error, el ambiente no se modifica. De lo contrario, se le carga o reemplaza el valor."
-;;   [] (nil))
-;;---------------------------------------------------------------------------------------------------;;
-
-;;---------------------------------------------------------------------------------------------------;;
-(defn _amb-keys [A]
+(defn __amb-keys [A]
   (map (fn [t] (nth t 1))
        (filter (fn [t] (odd? (nth t 0))) (map list (range 1 (inc (count A))) A))))
 
-(defn _amb-values [A]
+(defn __amb-values [A]
   (map (fn [t] (nth t 1))
        (filter (fn [t] (even? (nth t 0))) (map list (range 1 (inc (count A))) A))))
 
+(defn __tuple-has-key [T, key]
+  (igual? key (nth T 0)))
+
+(defn _amb-to-tuples [A]
+  (map list (__amb-keys A) (__amb-values A)))
+
+(defn _get-key-value-pair-from-amb [A, key]
+  (_first-or-nil
+   (filter (fn [t] (__tuple-has-key t key)) (_amb-to-tuples A))))
+
 (defn buscar
-  "Busca una clave en un ambiente (una lista con claves en las posiciones impares [1, 3, 5...] 
-   y valores en las pares [2, 4, 6...] y devuelve el valor asociado.
-   Devuelve un mensaje de error si no la encuentra."
+  "Busca una clave en un ambiente (una lista con claves en las posiciones
+   impares [1, 3, 5...] y valores en las pares [2, 4, 6...] y devuelve el 
+   valor asociado. Devuelve un mensaje de error si no la encuentra."
   [key, A]
-  (let [encontrado (_first-or-nil (filter (fn [t] (= key (nth t 0))) (map list (_amb-keys A) (_amb-values A))))]
+  (let [encontrado (_get-key-value-pair-from-amb A key)]
     (cond (some? encontrado) (nth encontrado 1)
           :else (list "*error*" "unbound-symbol" key))))
+;;---------------------------------------------------------------------------------------------------;;
+
+;;---------------------------------------------------------------------------------------------------;;
+(defn _key-exists-in-amb [A, key]
+  (not (nil? (_get-key-value-pair-from-amb A key))))
+
+(defn _replace-if-tuple-has-key [T, key, new-value]
+  (cond (__tuple-has-key T key) (list key new-value) :else T))
+
+(defn actualizar-amb
+  "Devuelve un ambiente actualizado con una clave (nombre de la variable o funcion) y su valor. 
+  Si el valor es un error, el ambiente no se modifica. De lo contrario, se le carga o reemplaza el valor."
+  [A, key, value]
+  (cond
+    (error? value) A
+    (not (_key-exists-in-amb A key)) (fnc-append (list A (list key value)))
+    :else (flatten (map (fn [t] (_replace-if-tuple-has-key t key value)) (_amb-to-tuples A)))))
 ;;---------------------------------------------------------------------------------------------------;;
 
 ;;---------------------------------------------------------------------------------------------------;;
