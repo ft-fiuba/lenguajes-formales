@@ -518,8 +518,6 @@
 ;;   "Devuelve la fusion de los ambientes global y local.")
 
 
-
-
 ; user=> (fnc-read ())
 ; 1
 ; 1
@@ -620,58 +618,27 @@
 ;;   "Devuelve t si el primer numero es menor que el segundo; si no, nil.")
 
 
-; user=> (fnc-gt ())
-; (*error* too-few-args)
-; user=> (fnc-gt '(1))
-; (*error* too-few-args)
-; user=> (fnc-gt '(2 1))
-; t
-; user=> (fnc-gt '(1 1))
-; nil
-; user=> (fnc-gt '(1 2))
-; nil
-; user=> (fnc-gt '(A 1))
-; (*error* number-expected A)
-; user=> (fnc-gt '(1 A))
-; (*error* number-expected A)
-; user=> (fnc-gt '(1 2 3))
-; (*error* too-many-args)
-;; (defn fnc-gt
-;;   "Devuelve t si el primer numero es mayor que el segundo; si no, nil.")
 
+(defn fnc-gt
+  "Devuelve t si el primer numero es mayor que el segundo; si no, nil."
+  [args]
+  (let [args-error (_check-num-args args 2)]
+    (cond
+      (some? args-error) args-error
+      (not (number? (nth args 0))) (_build-error 'number-expected (nth args 0))
+      (not (number? (nth args 1))) (_build-error 'number-expected (nth args 1))
+      :else (cond (> (nth args 0) (nth args 1)) 't :else nil))))
 
-; user=> (fnc-ge ())
-; (*error* too-few-args)
-; user=> (fnc-ge '(1))
-; (*error* too-few-args)
-; user=> (fnc-ge '(2 1))
-; t
-; user=> (fnc-ge '(1 1))
-; t
-; user=> (fnc-ge '(1 2))
-; nil
-; user=> (fnc-ge '(A 1))
-; (*error* number-expected A)
-; user=> (fnc-ge '(1 A))
-; (*error* number-expected A)
-; user=> (fnc-ge '(1 2 3))
-; (*error* too-many-args)
-;; (defn fnc-ge
-;;   "Devuelve t si el primer numero es mayor o igual que el segundo; si no, nil.")
+(defn fnc-ge
+  "Devuelve t si el primer numero es mayor o igual que el segundo; si no, nil."
+  [args]
+  (let [args-error (_check-num-args args 2)]
+    (cond
+      (some? args-error) args-error
+      (not (number? (nth args 0))) (_build-error 'number-expected (nth args 0))
+      (not (number? (nth args 1))) (_build-error 'number-expected (nth args 1))
+      :else (cond (>= (nth args 0) (nth args 1)) 't :else nil))))
 
-
-; user=> (fnc-reverse ())
-; (*error* too-few-args)
-; user=> (fnc-reverse '(1))
-; (*error*  1)
-; user=> (fnc-reverse '(A))
-; (*error* list expected A)
-; user=> (fnc-reverse '((1)) )
-; (1)
-; user=> (fnc-reverse '((1 2 3)) )
-; (3 2 1)
-; user=> (fnc-reverse '((1 2 3)(4)) )
-; (*error* too-many-args)
 (defn fnc-reverse
   "Devuelve una lista con sus elementos en orden inverso."
   [args]
