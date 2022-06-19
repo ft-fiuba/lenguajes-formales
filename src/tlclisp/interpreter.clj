@@ -566,27 +566,14 @@
     (not-every? number? args) (_build-error 'number-expected (first (filter (fn [e] (not (number? e))) args)))
     :else (reduce + args)))
 
-
-; user=> (fnc-sub ())
-; (*error* too-few-args)
-; user=> (fnc-sub '(3))
-; -3
-; user=> (fnc-sub '(3 4))
-; -1
-; user=> (fnc-sub '(3 4 5))
-; -6
-; user=> (fnc-sub '(3 4 5 6))
-; -12
-; user=> (fnc-sub '(A 4 5 6))
-; (*error* number-expected A)
-; user=> (fnc-sub '(3 A 5 6))
-; (*error* number-expected A)
-; user=> (fnc-sub '(3 4 A 6))
-; (*error* number-expected A)
-;; (defn fnc-sub
-;;   "Resta los elementos de un lista. Minimo 1 elemento.")
-
-
+(defn fnc-sub
+  "Resta los elementos de un lista. Minimo 1 elemento."
+  [args]
+  (cond
+    (empty? args) (_build-error 'too-few-args)
+    (= 1 (count args)) (- (nth args 0))
+    (not-every? number? args) (_build-error 'number-expected (first (filter (fn [e] (not (number? e))) args)))
+    :else (reduce - args)))
 
 (defn fnc-lt
   "Devuelve t si el primer numero es menor que el segundo; si no, nil."
