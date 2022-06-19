@@ -411,7 +411,6 @@
   (cond (error? L) L :else nil))
 ;;---------------------------------------------------------------------------------------------------;;
 
-
 ;;---------------------------------------------------------------------------------------------------;;
 (defn _first-or-nil [L]
   (cond (empty? L) nil :else (first L)))
@@ -439,8 +438,6 @@
 ;;   [] (nil))
 ;;---------------------------------------------------------------------------------------------------;;
 
-
-
 ;;---------------------------------------------------------------------------------------------------;;
 (defn _amb-keys [A]
   (map (fn [t] (nth t 1))
@@ -460,27 +457,17 @@
           :else (list "*error*" "unbound-symbol" key))))
 ;;---------------------------------------------------------------------------------------------------;;
 
-
-; user=> (fnc-append '( (1 2) ))
-; (*error* too-few-args)
-; user=> (fnc-append '( (1 2) (3) (4 5) (6 7) ))
-; (*error* too-many-args)
-; user=> (fnc-append '( (1 2) 3 ))
-; (*error* list expected 3)
-; user=> (fnc-append '( (1 2) A ))
-; (*error* list expected A)
-; user=> (fnc-append '( (1 2) (3)))
-; (1 2 3)
-; user=> (fnc-append '( (1 2) nil ))
-; (1 2)
-; user=> (fnc-append '( () (1 2) ))
-; (1 2)
-; user=> (fnc-append '(nil nil))
-; nil
-; user=> (fnc-append '(() ()))
-; nil
-;; (defn fnc-append
-;;   "Devuelve el resultado de fusionar 2 sublistas.")
+;;---------------------------------------------------------------------------------------------------;;
+(defn fnc-append
+  "Devuelve el resultado de fusionar 2 sublistas."
+  [Ls]
+  (cond
+    (> (count Ls) 2) '(*error* too-many-args)
+    (< (count Ls) 2) '(*error* too-few-args)
+    ; Returns a seq on the collection. 
+    ; If the collection is  empty, returns nil.
+    :else (seq (concat (nth Ls 0) (nth Ls 1)))))
+;;---------------------------------------------------------------------------------------------------;;
 
 
 ; user=> (fnc-env () '(a 1 b 2) '(c 3 d 4))
