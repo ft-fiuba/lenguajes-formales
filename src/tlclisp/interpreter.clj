@@ -368,6 +368,7 @@
 ; FUNCIONES QUE DEBEN SER IMPLEMENTADAS PARA COMPLETAR EL INTERPRETE DE TLC-LISP
 ; (ADEMAS DE COMPLETAR 'EVALUAR' Y 'APLICAR-FUNCION-PRIMITIVA'):
 
+;;---------------------------------------------------------------------------------------------------;;
 (defn controlar-aridad
   "Si la longitud de una lista dada es la esperada, devuelve esa longitud.
    Si no, devuelve una lista con un mensaje de error (una lista con *error* como primer elemento)."
@@ -377,8 +378,9 @@
       (> real-length n) (list "*error*" "too-many-args")
       (< real-length n) (list "*error*" "too-few-args")
       :else n)))
+  ;;---------------------------------------------------------------------------------------------------;;
 
-
+;;---------------------------------------------------------------------------------------------------;;
 (defn is-lisp-nil
   "Devuelte true si el valor es equlivalente a nil en TLC-LISP"
   [n]
@@ -390,25 +392,9 @@
   (let [str-a (str (cond (is-lisp-nil a) nil :else a))
         str-b (str (cond (is-lisp-nil b) nil :else b))]
     (= (lower-case str-a) (lower-case str-b))))
+;;---------------------------------------------------------------------------------------------------;;
 
-; user=> (error? '(*error* too-few-args))
-; true
-; user=> (error? (list '*error* 'too-few-args))
-; true
-; user=> (error? (list '*ERROR* 'too-few-args))
-; true
-; user=> (error? (list '*Error* 'too-few-args))
-; true
-; user=> (error? (list '*error*))
-; true
-; user=> (error? (list 'too-few-args))
-; false
-; user=> (error? '*error*)
-; false
-; user=> (error? ())
-; false
-; user=> (error? nil)
-; false
+;;---------------------------------------------------------------------------------------------------;;
 (defn error?
   "Devuelve true o false, segun sea o no el arg. un mensaje de error (una lista con *error* como primer elemento)."
   [L]
@@ -416,21 +402,14 @@
     (not (list? L)) false
     (empty? L) false
     :else (igual? (nth L 0) "*error*")))
+;;---------------------------------------------------------------------------------------------------;;
 
-
-; user=> (revisar-fnc '(*error* too-few-args))
-; (*error* too-few-args)
-; user=> (revisar-fnc '(too-few-args))
-; nil
-; user=> (revisar-fnc '*error*)
-; nil
-; user=> (revisar-fnc nil)
-; nil
-; user=> (revisar-fnc ())
-; nil
-;; (defn revisar-fnc
-;;   "Si la lista es un mensaje de error, lo devuelve; si no, devuelve nil.")
-
+;;---------------------------------------------------------------------------------------------------;;
+(defn revisar-fnc
+  "Si la lista es un mensaje de error, lo devuelve; si no, devuelve nil."
+  [L]
+  (cond (error? L) L :else nil))
+;;---------------------------------------------------------------------------------------------------;;
 
 ; user=> (revisar-lae '(1 2 3))
 ; nil
@@ -442,8 +421,8 @@
 ; (*error* too-few-args)
 ; user=> (revisar-lae '(1 (*error* too-few-args) (*error* too-many-args) 3))
 ; (*error* too-few-args)
-;; (defn revisar-lae
-;;   "Devuelve el primer elemento que es un mensaje de error. Si no hay ninguno, devuelve nil.")
+(defn revisar-lae
+  "Devuelve el primer elemento que es un mensaje de error. Si no hay ninguno, devuelve nil.")
 
 
 ; user=> (actualizar-amb '(a 1 b 2 c 3) 'd 4)

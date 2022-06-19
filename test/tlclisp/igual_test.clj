@@ -9,6 +9,9 @@
   (testing "Dos numeros diferentes no son iguales"
     (is (not (igual? 1 2))))
 
+  (testing "Igualar quote con string sin importar el case"
+    (is (and (igual? "hola" 'hola) (igual? "hola" 'HOLA) (igual? "HOLA" 'hola))))
+
   (testing "Dos chars del mismo case son iguales"
     (is (and (igual? 'A 'A) (igual? 'a 'a))))
 
