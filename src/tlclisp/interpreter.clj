@@ -1,6 +1,8 @@
 (ns tlclisp.interpreter)
 
-(require '[clojure.string :refer [blank? ends-with? lower-case]] '[clojure.java.io :refer [reader]])
+(require
+ '[clojure.string :refer [blank? ends-with? lower-case]]
+ '[clojure.java.io :refer [reader]])
 
 (defn spy
   ([x] (do (prn x) (prn) x))
@@ -478,16 +480,20 @@
 
 
 ;;---------------------------------------------------------------------------------------------------;;
-(defn _check-args [args, expected]
+(defn _build-error
+  ([msg] (list '*error* msg))
+  ([msg, value] (list '*error* msg value)))
+
+(defn _check-num-args [args, expected]
   (cond
-    (> (count args) expected) '(*error* too-many-args)
-    (< (count args) expected) '(*error* too-few-args)
+    (> (count args) expected) (_build-error 'too-many-args)
+    (< (count args) expected) (_build-error 'too-few-args)
     :else nil))
 
 (defn fnc-append
   "Devuelve el resultado de fusionar 2 sublistas."
   [args]
-  (let [args-error (_check-args args, 2)]
+  (let [args-error (_check-num-args args, 2)]
     (cond
       (some? args-error) args-error
     ; Returns a seq on the collection. 
@@ -497,7 +503,7 @@
 (defn fnc-equal
   "Compara 2 elementos. Si son iguales, devuelve t. Si no, nil."
   [args]
-  (let [args-error (_check-args args, 2)]
+  (let [args-error (_check-num-args args, 2)]
     (cond
       (some? args-error) args-error
       :else (cond (igual? (nth args 0) (nth args 1)) 't :else nil))))
@@ -545,7 +551,6 @@
 
 
 ; user=> (fnc-terpri ())
-; 
 ; nil
 ; user=> (fnc-terpri '(1))
 ; (*error* not-implemented)
@@ -658,7 +663,7 @@
 ; user=> (fnc-reverse ())
 ; (*error* too-few-args)
 ; user=> (fnc-reverse '(1))
-; (*error* list expected 1)
+; (*error*  1)
 ; user=> (fnc-reverse '(A))
 ; (*error* list expected A)
 ; user=> (fnc-reverse '((1)) )
@@ -667,8 +672,21 @@
 ; (3 2 1)
 ; user=> (fnc-reverse '((1 2 3)(4)) )
 ; (*error* too-many-args)
-;; (defn fnc-reverse
-;;   "Devuelve una lista con sus elementos en orden inverso.")
+(defn fnc-reverse
+  "Devuelve una lista con sus elementos en orden inverso."
+  [args]
+  (let [args-error (_check-num-args args 1)]
+    (cond
+      (some? args-error) args-error
+      (not (list? (nth args 0))) (_build-error 'list-expected (nth args 0))
+      :else (reverse (nth args 0)))))
+
+
+
+
+
+
+
 
 
 ; user=> (evaluar-escalar 32 '(v 1 w 3 x 6) '(x 5 y 11 z "hola"))
