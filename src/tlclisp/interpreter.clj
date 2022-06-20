@@ -521,6 +521,15 @@
       (some? args-error) args-error
       :else (let [val (read)] (cond (_is-lisp-nil val) nil :else val)))))
 
+(defn fnc-env
+  "Devuelve la fusion de los ambientes global y local."
+  [arg, global-env, local-env]
+  (let [args-error (_check-is-empty-arg arg)]
+    (cond
+      ; return another error instead of default
+      (some? args-error) (_build-error 'too-many-args)
+      :else (fnc-append (list global-env local-env)))))
+
 (defn fnc-terpri
   "Imprime un salto de línea y devuelve nil."
   [args]

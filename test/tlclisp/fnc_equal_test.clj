@@ -2,28 +2,6 @@
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [fnc-equal]]))
 
-; user=> (fnc-equal '(1 1))
-; t
-; user=> (fnc-equal '(A a))
-; t
-; user=> (fnc-equal '("1" "1"))
-; t
-; user=> (fnc-equal '(nil NIL))
-; t
-; user=> (fnc-equal '(1 2))
-; nil
-; user=> (fnc-equal '(A B))
-; nil
-; user=> (fnc-equal '("1" 1))
-; nil
-
-; user=> (fnc-equal ())
-; (*error* too-few-args)
-; user=> (fnc-equal '(A))
-; (*error* too-few-args)
-; user=> (fnc-equal '(A a A))
-; (*error* too-many-args)
-
 (deftest fnc-equal-test
   (testing "El mismo numero devuelve que son iguales"
     (is (= 't (fnc-equal '(1 1)))))
