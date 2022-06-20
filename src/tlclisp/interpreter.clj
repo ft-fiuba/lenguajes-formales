@@ -618,38 +618,51 @@
                     :else (list (_build-error 'unbound-symbol e) global-env)))
 
     :else (list e global-env)))
-;;---------------------------------------------------------------------------------------------------;;
 
 
-; user=> (evaluar-de '(de f (x)) '(x 1))
-; (f (x 1 f (lambda (x))))
-; user=> (evaluar-de '(de f (x) 2) '(x 1))
-; (f (x 1 f (lambda (x) 2)))
-; user=> (evaluar-de '(de f (x) (+ x 1)) '(x 1))
-; (f (x 1 f (lambda (x) (+ x 1))))
-; user=> (evaluar-de '(de f (x y) (+ x y)) '(x 1))
-; (f (x 1 f (lambda (x y) (+ x y))))
-; user=> (evaluar-de '(de f (x y) (prin3 x) (terpri) y) '(x 1))
-; (f (x 1 f (lambda (x y) (prin3 x) (terpri) y)))
-; user=> (evaluar-de '(de) '(x 1))
-; ((*error* list expected nil) (x 1))
-; user=> (evaluar-de '(de f) '(x 1))
-; ((*error* list expected nil) (x 1))
+
+(defn _add-lambda-to-func-body [func-body]
+  (conj func-body 'lambda))
+
+
 ; user=> (evaluar-de '(de f 2) '(x 1))
 ; ((*error* list expected 2) (x 1))
+
 ; user=> (evaluar-de '(de f 2 3) '(x 1))
 ; ((*error* list expected 2) (x 1))
+
 ; user=> (evaluar-de '(de (f)) '(x 1))
 ; ((*error* list expected nil) (x 1))
+
 ; user=> (evaluar-de '(de 2 x) '(x 1))
 ; ((*error* list expected x) (x 1))
+
 ; user=> (evaluar-de '(de 2 (x)) '(x 1))
 ; ((*error* symbol expected 2) (x 1))
+
 ; user=> (evaluar-de '(de nil (x) 2) '(x 1))
 ; ((*error* cannot-set nil) (x 1))
-;; (defn evaluar-de
-;;   "Evalua una forma 'de'. Devuelve una lista con el resultado y un ambiente actualizado con la definicion.")
+(defn _check-func-def [func]
+  (let [func-name (cond (> (count func) 1) (nth func 1) :else nil)
+        func-params (cond (> (count func) 2) (nth func 2) :else nil)]
 
+    (cond
+      (and (nil? func-name) (> (count func) 1)) (_build-error 'cannot-set nil)
+      (nil? func-name) (_build-error 'list-expected nil)
+      (nil? func-params) (_build-error 'list-expected nil)
+      (not (list? func-params)) (_build-error 'list-expected func-params)
+      (not (symbol? func-name)) (_build-error 'symbol-expected func-name)
+      :else nil)))
+
+(defn evaluar-de
+  "Evalua una forma 'de'. Devuelve una lista con el resultado y un ambiente actualizado con la definicion."
+  [func, amb]
+  (let [func-def-error (_check-func-def func)]
+    (cond
+      (some? func-def-error) (list func-def-error amb)
+      :else (let [func-name (nth func 1), func-body (rest (rest func))]
+              (list func-name (actualizar-amb amb func-name (_add-lambda-to-func-body func-body)))))))
+;;---------------------------------------------------------------------------------------------------;;
 
 ; user=> (evaluar-if '(if t) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
 ; (nil (nil nil t t v 1 w 3 x 6))
