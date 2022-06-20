@@ -498,7 +498,7 @@
 (defn fnc-append
   "Devuelve el resultado de fusionar 2 sublistas."
   [args]
-  (let [args-error (_check-num-args args, 2)]
+  (let [args-error (_check-num-args args 2)]
     (cond
       (some? args-error) args-error
       ; Returns a seq on the collection. 
@@ -508,7 +508,7 @@
 (defn fnc-equal
   "Compara 2 elementos. Si son iguales, devuelve t. Si no, nil."
   [args]
-  (let [args-error (_check-num-args args, 2)]
+  (let [args-error (_check-num-args args 2)]
     (cond
       (some? args-error) args-error
       :else (cond (igual? (nth args 0) (nth args 1)) 't :else nil))))
@@ -523,12 +523,12 @@
 
 (defn fnc-env
   "Devuelve la fusion de los ambientes global y local."
-  [arg, global-env, local-env]
+  [arg, local-env, global-env]
   (let [args-error (_check-is-empty-arg arg)]
     (cond
       ; return another error instead of default
       (some? args-error) (_build-error 'too-many-args)
-      :else (fnc-append (list global-env local-env)))))
+      :else (fnc-append (list local-env global-env)))))
 
 (defn fnc-terpri
   "Imprime un salto de línea y devuelve nil."
@@ -603,23 +603,22 @@
 
 
 
+;;---------------------------------------------------------------------------------------------------;;
+(defn evaluar-escalar
+  "Evalua una expresion escalar consultando, si corresponde, 
+   los ambientes local y global. Devuelve una lista con el resultado 
+   y un ambiente."
+  [e, global-env, local-env]
+  (cond
+    (symbol? e) (let [val-in-local (buscar e local-env) val-in-global (buscar e global-env)]
+                  (cond
+                    ; local-env has priority
+                    (not (error? val-in-local)) (list val-in-local global-env)
+                    (not (error? val-in-global)) (list val-in-global global-env)
+                    :else (list (_build-error 'unbound-symbol e) global-env)))
 
-; user=> (evaluar-escalar 32 '(v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (32 (v 1 w 3 x 6))
-; user=> (evaluar-escalar "chau" '(v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; ("chau" (v 1 w 3 x 6))
-; user=> (evaluar-escalar 'z '(v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; ("hola" (v 1 w 3 x 6))
-; user=> (evaluar-escalar 'Z '(v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; ("hola" (v 1 w 3 x 6))
-; user=> (evaluar-escalar 'w '(v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (3 (v 1 w 3 x 6))
-; user=> (evaluar-escalar 'x '(v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (5 (v 1 w 3 x 6))
-; user=> (evaluar-escalar 'n '(v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; ((*error* unbound-symbol n) (v 1 w 3 x 6))
-;; (defn evaluar-escalar
-;;   "Evalua una expresion escalar consultando, si corresponde, los ambientes local y global. Devuelve una lista con el resultado y un ambiente.")
+    :else (list e global-env)))
+;;---------------------------------------------------------------------------------------------------;;
 
 
 ; user=> (evaluar-de '(de f (x)) '(x 1))

@@ -1,4 +1,4 @@
-(ns tlclisp.fnc-read-test
+(ns tlclisp.primitives.fnc-read-test
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [fnc-read]]))
 

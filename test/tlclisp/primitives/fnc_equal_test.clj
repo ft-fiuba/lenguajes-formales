@@ -1,4 +1,4 @@
-(ns tlclisp.fnc-equal-test
+(ns tlclisp.primitives.fnc-equal-test
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [fnc-equal]]))
 
@@ -7,9 +7,9 @@
     (is (= 't (fnc-equal '(1 1)))))
 
   (testing "Dos caracteres son iguales sin importar el case"
-    (is (and (= 't (fnc-equal '(A a)))
-             (= 't (fnc-equal '(A A)))
-             (= 't (fnc-equal '(a a))))))
+    (is (= 't (fnc-equal '(A a))))
+    (is (= 't (fnc-equal '(A A))))
+    (is (= 't (fnc-equal '(a a)))))
 
   (testing "Dos strings son iguales"
     (is (= 't (fnc-equal '("1" "1")))))

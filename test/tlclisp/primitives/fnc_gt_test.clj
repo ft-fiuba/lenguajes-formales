@@ -1,4 +1,4 @@
-(ns tlclisp.fnc-gt-test
+(ns tlclisp.primitives.fnc-gt-test
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [fnc-gt]]))
 
@@ -10,13 +10,13 @@
     (is (= '(*error* too-few-args) (fnc-gt '(1)))))
 
   (testing "Determina es mayor correctamente"
-    (is (and (= 't (fnc-gt '(2 1)))
-             (= nil (fnc-gt '(1 2)))
-             (= nil (fnc-gt '(1 1))))))
+    (is (= 't (fnc-gt '(2 1))))
+    (is (= nil (fnc-gt '(1 2))))
+    (is (= nil (fnc-gt '(1 1)))))
 
   (testing "Devuelve error si se pasa algo que no es un numero"
-    (is (and (= '(*error* number-expected A) (fnc-gt '(A 1)))
-             (= '(*error* number-expected A) (fnc-gt '(1 A))))))
+    (is (= '(*error* number-expected A) (fnc-gt '(A 1))))
+    (is (= '(*error* number-expected A) (fnc-gt '(1 A)))))
 
   (testing "Devuelve error si se pasan mas de 2 argumentos"
     (is (= '(*error* too-many-args) (fnc-gt '(1 2 3))))))

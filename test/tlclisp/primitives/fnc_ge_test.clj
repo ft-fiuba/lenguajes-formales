@@ -1,4 +1,4 @@
-(ns tlclisp.fnc-ge-test
+(ns tlclisp.primitives.fnc-ge-test
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [fnc-ge]]))
 

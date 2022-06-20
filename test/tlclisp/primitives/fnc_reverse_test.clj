@@ -1,19 +1,6 @@
-(ns tlclisp.fnc-reverse-test
+(ns tlclisp.primitives.fnc-reverse-test
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [fnc-reverse]]))
-
-; user=> (fnc-reverse ())
-; (*error* too-few-args)
-; user=> (fnc-reverse '(1))
-; (*error*  1)
-; user=> (fnc-reverse '(A))
-; (*error* list expected A)
-; user=> (fnc-reverse '((1)) )
-; (1)
-; user=> (fnc-reverse '((1 2 3)) )
-; (3 2 1)
-; user=> (fnc-reverse '((1 2 3)(4)) )
-; (*error* too-many-args)
 
 (deftest fnc-reverse-test
   (testing "No pasar argumentos genera error"

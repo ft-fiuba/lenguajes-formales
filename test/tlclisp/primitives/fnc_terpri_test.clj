@@ -1,4 +1,4 @@
-(ns tlclisp.fnc-terpri-test
+(ns tlclisp.primitives.fnc-terpri-test
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [fnc-terpri]]))
 
