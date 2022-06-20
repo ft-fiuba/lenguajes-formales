@@ -490,14 +490,19 @@
     (< (count args) expected) (_build-error 'too-few-args)
     :else nil))
 
+(defn _check-is-empty-arg [arg]
+  (cond
+    (= '() arg) nil
+    :else (_build-error 'not-implemented)))
+
 (defn fnc-append
   "Devuelve el resultado de fusionar 2 sublistas."
   [args]
   (let [args-error (_check-num-args args, 2)]
     (cond
       (some? args-error) args-error
-    ; Returns a seq on the collection. 
-    ; If the collection is  empty, returns nil.
+      ; Returns a seq on the collection. 
+      ; If the collection is  empty, returns nil.
       :else (seq (concat (nth args 0) (nth args 1))))))
 
 (defn fnc-equal
@@ -507,46 +512,13 @@
     (cond
       (some? args-error) args-error
       :else (cond (igual? (nth args 0) (nth args 1)) 't :else nil))))
-;;---------------------------------------------------------------------------------------------------;;
 
-
-; user=> (fnc-env () '(a 1 b 2) '(c 3 d 4))
-; (a 1 b 2 c 3 d 4)
-; user=> (fnc-env '(5) '(a 1 b 2) '(c 3 d 4))
-; (*error* too-many-args)
-;; (defn fnc-env
-;;   "Devuelve la fusion de los ambientes global y local.")
-
-
-; user=> (fnc-read ())
-; 1
-; 1
-; user=> (fnc-read ())
-; a
-; a
-; user=> (fnc-read ())
-; "hola"
-; "hola"
-; user=> (fnc-read ())
-; (hola mundo)
-; (hola mundo)
-; user=> (fnc-read ())
-; (hola
-; mundo)
-; (hola mundo)
-; user=> (fnc-read ())
-; ()
-; nil
-; user=> (fnc-read ())
-; nil
-; nil
-; user=> (fnc-read '(1))
-; (*error* not-implemented)
-; user=> (fnc-read '(1 2))
-; (*error* not-implemented)
-;; (defn fnc-read
-;;   "Devuelve la lectura de un elemento de TLC-LISP desde la terminal/consola.")
-
+(defn fnc-read
+  "Devuelve la lectura de un elemento de TLC-LISP desde la terminal/consola."
+  [args]
+  (let [args-error (_check-is-empty-arg args)]
+    (cond (some? args-error) args-error
+          :else (let [val (read)] (cond (_is-lisp-nil val) nil :else val)))))
 
 ; user=> (fnc-terpri ())
 ; nil

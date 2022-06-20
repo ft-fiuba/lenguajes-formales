@@ -24,7 +24,7 @@
 ; user=> (fnc-equal '(A a A))
 ; (*error* too-many-args)
 
-(deftest igual?-test
+(deftest fnc-equal-test
   (testing "El mismo numero devuelve que son iguales"
     (is (= 't (fnc-equal '(1 1)))))
 
