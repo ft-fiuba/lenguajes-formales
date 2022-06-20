@@ -2,11 +2,6 @@
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [fnc-read]]))
 
-; user=> (fnc-read '(1))
-; (*error* not-implemented)
-; user=> (fnc-read '(1 2))
-; (*error* not-implemented)
-
 (deftest fnc-read-test
   (testing "Leer de pantalla"
     (is 1 (with-in-str "1" (fnc-read ())))

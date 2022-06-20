@@ -517,18 +517,17 @@
   "Devuelve la lectura de un elemento de TLC-LISP desde la terminal/consola."
   [args]
   (let [args-error (_check-is-empty-arg args)]
-    (cond (some? args-error) args-error
-          :else (let [val (read)] (cond (_is-lisp-nil val) nil :else val)))))
+    (cond
+      (some? args-error) args-error
+      :else (let [val (read)] (cond (_is-lisp-nil val) nil :else val)))))
 
-; user=> (fnc-terpri ())
-; nil
-; user=> (fnc-terpri '(1))
-; (*error* not-implemented)
-; user=> (fnc-terpri '(1 2))
-; (*error* not-implemented)
-;; (defn fnc-terpri
-;;   "Imprime un salto de línea y devuelve nil.")
-
+(defn fnc-terpri
+  "Imprime un salto de línea y devuelve nil."
+  [args]
+  (let [args-error (_check-is-empty-arg args)]
+    (cond
+      (some? args-error) args-error
+      :else (println "\n"))))
 
 (defn fnc-add
   "Suma los elementos de una lista. Minimo 2 elementos."
@@ -585,6 +584,8 @@
       (some? args-error) args-error
       (not (list? (nth args 0))) (_build-error 'list-expected (nth args 0))
       :else (reverse (nth args 0)))))
+;;---------------------------------------------------------------------------------------------------;;
+
 
 
 
