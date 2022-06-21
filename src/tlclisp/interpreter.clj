@@ -107,22 +107,22 @@
   (if (or (igual? expre nil)
           (and (seq? expre)
                (or (empty? expre) (error? expre)))) ; si 'expre' es nil, () o error, devolverla intacta
-    (list expre amb-global)                       ; de lo contrario, evaluarla
+    (list expre amb-global)                         ; de lo contrario, evaluarla
     (cond
-      (not (seq? expre))             (evaluar-escalar expre amb-global amb-local)
+      (not (seq? expre))              (evaluar-escalar expre amb-global amb-local)
+      (igual? (first expre) 'cond)    (evaluar-cond expre amb-global amb-local)
+      (igual? (first expre) 'de)      (evaluar-de expre amb-global)
+      (igual? (first expre) 'eval)    (evaluar-eval expre amb-global amb-local)
+      (igual? (first expre) 'exit)    (evaluar-exit expre amb-global amb-local)
+      (igual? (first expre) 'if)      (evaluar-if expre amb-global amb-local)
+      (igual? (first expre) 'lambda)  (evaluar-lambda expre amb-global amb-local)
+      (igual? (first expre) 'load)    (evaluar-load expre amb-global amb-local)
+      (igual? (first expre) 'or)      (evaluar-or expre amb-global amb-local)
+      (igual? (first expre) 'quote)   (evaluar-quote expre amb-global amb-local)
+      (igual? (first expre) 'setq)    (evaluar-setq expre amb-global amb-local)
 
-      (igual? (first expre) 'cond)   (evaluar-cond expre amb-global amb-local)
-      (igual? (first expre) 'de)     (evaluar-de expre amb-global)
-
-         ;
-         ;
-         ;
-         ; Si la expresion no es la aplicacion de una funcion (es una forma especial, una macro...) debe ser evaluada aqui
-         ; por una funcion de Clojure especifica debido a que puede ser necesario evitar la evaluacion de los argumentos
-         ;
-         ;
-         ;
-
+      ; Si la expresion no es la aplicacion de una funcion (es una forma especial, una macro...) debe ser evaluada aqui
+      ; por una funcion de Clojure especifica debido a que puede ser necesario evitar la evaluacion de los argumentos 
       :else (let [res-eval-1 (evaluar (first expre) amb-global amb-local),
                   res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x) amb-local)] (cons (second res-eval-3) (concat (next x) (list (first res-eval-3)))))) (cons (list (second res-eval-1)) (next expre)))]
               (aplicar (first res-eval-1) (next res-eval-2) (first res-eval-2) amb-local)))))
@@ -666,8 +666,6 @@
       :else (let [func-name (nth func 1), func-body (rest (rest func))]
               (list func-name (actualizar-amb amb func-name (_add-lambda-to-func-body func-body)))))))
 
-
-;;---------------------------------------------------------------------------------------------------;;
 (defn evaluar-if
   "Evalua una forma 'if'. Devuelve una lista con el resultado y un ambiente eventualmente modificado."
   [pred global-env local-env]
@@ -679,38 +677,15 @@
     (cond
       (not (nil? res-condition)) (evaluar true-path global-env local-env)
       :else (evaluar false-path global-env local-env))))
+;;---------------------------------------------------------------------------------------------------;;
 
-;(println (evaluar-if '(if (gt 0 2) a 8) '(gt gt nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola")))
 
-(println (evaluar '(gt 0 2) '(gt gt nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola")))
-; user=> (evaluar-or '(or) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
-; (nil (nil nil t t w 5 x 4))
-; user=> (evaluar-or '(or nil) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
-; (nil (nil nil t t w 5 x 4))
-; user=> (evaluar-or '(or t) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
-; (t (nil nil t t w 5 x 4))
-; user=> (evaluar-or '(or w) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
-; (5 (nil nil t t w 5 x 4))
-; user=> (evaluar-or '(or r) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
-; ((*error* unbound-symbol r) (nil nil t t w 5 x 4))
-; user=> (evaluar-or '(or y) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
-; (nil (nil nil t t w 5 x 4))
-; user=> (evaluar-or '(or 6) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
-; (6 (nil nil t t w 5 x 4))
-; user=> (evaluar-or '(or nil 6) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
-; (6 (nil nil t t w 5 x 4))
-; user=> (evaluar-or '(or (setq b 8) nil) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
-; (8 (nil nil t t w 5 x 4 b 8))
-; user=> (evaluar-or '(or nil 6 nil) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
-; (6 (nil nil t t w 5 x 4))
-; user=> (evaluar-or '(or nil 6 r nil) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
-; (6 (nil nil t t w 5 x 4))
-; user=> (evaluar-or '(or nil t r nil) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
-; (t (nil nil t t w 5 x 4))
-; user=> (evaluar-or '(or nil nil nil nil) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
-; (nil (nil nil t t w 5 x 4))
-;; (defn evaluar-or
-;;   "Evalua una forma 'or'. Devuelve una lista con el resultado y un ambiente.")
+
+(defn evaluar-or
+  "Evalua una forma 'or'. Devuelve una lista con el resultado y un ambiente."
+  [pred global-env local-env]
+  (let [value (_first-or-nil (filter (fn [e] (not (nil? e))) (rest pred)))]
+    (evaluar value global-env local-env)))
 
 
 ; user=> (evaluar-setq '(setq) '(nil nil t t + add w 5 x 4) '(x 1 y nil z 3))
