@@ -244,7 +244,13 @@
 (defn aplicar-lambda-simple
   "Evalua una forma lambda 'fnc' con un cuerpo simple."
   [fnc lae amb-global amb-local]
-  (evaluar (first (nnext fnc)) amb-global (concat (reduce concat (map list (second fnc) lae)) amb-local)))
+  (let [lista-params-args (reduce concat (map list (second fnc) lae)),
+        nuevo-amb-local (cond
+                          (empty? amb-local) lista-params-args
+                          (empty? lista-params-args) amb-local
+                          :else (apply concat (apply assoc (apply assoc {} amb-local) lista-params-args)))]
+    (evaluar (first (nnext fnc)) amb-global nuevo-amb-local)))
+
 
 
 (defn aplicar-lambda-multiple
@@ -261,7 +267,24 @@
   [fnc lae amb-global amb-local]
   (cond
     (igual? fnc 'add)     (fnc-add lae)
-
+    (igual? fnc 'append)  (fnc-append lae)
+    (igual? fnc 'cons)    (fnc-cons lae)
+    (igual? fnc 'equal)   (fnc-equal lae)
+    (igual? fnc 'first)   (fnc-first lae)
+    (igual? fnc 'ge)      (fnc-ge lae)
+    (igual? fnc 'gt)      (fnc-gt lae)
+    (igual? fnc 'length)  (fnc-length lae)
+    (igual? fnc 'list)    (fnc-list lae)
+    (igual? fnc 'listp)   (fnc-listp lae)
+    (igual? fnc 'lt)      (fnc-lt lae)
+    (igual? fnc 'not)     (fnc-not lae)
+    (igual? fnc 'null)    (fnc-null lae)
+    (igual? fnc 'prin3)   (fnc-prin3 lae)
+    (igual? fnc 'read)    (fnc-read lae)
+    (igual? fnc 'rest)    (fnc-rest lae)
+    (igual? fnc 'reverse) (fnc-reverse lae)
+    (igual? fnc 'sub)     (fnc-sub lae)
+    (igual? fnc 'terpri)  (fnc-terpri lae)
     ; Las funciones primitivas reciben argumentos y retornan un valor (son puras)
 
     :else (list '*error* 'non-applicable-type fnc)))
@@ -620,32 +643,12 @@
     :else (list e global-env)))
 
 
-
 (defn _add-lambda-to-func-body [func-body]
   (conj func-body 'lambda))
 
-
-; user=> (evaluar-de '(de f 2) '(x 1))
-; ((*error* list expected 2) (x 1))
-
-; user=> (evaluar-de '(de f 2 3) '(x 1))
-; ((*error* list expected 2) (x 1))
-
-; user=> (evaluar-de '(de (f)) '(x 1))
-; ((*error* list expected nil) (x 1))
-
-; user=> (evaluar-de '(de 2 x) '(x 1))
-; ((*error* list expected x) (x 1))
-
-; user=> (evaluar-de '(de 2 (x)) '(x 1))
-; ((*error* symbol expected 2) (x 1))
-
-; user=> (evaluar-de '(de nil (x) 2) '(x 1))
-; ((*error* cannot-set nil) (x 1))
 (defn _check-func-def [func]
   (let [func-name (cond (> (count func) 1) (nth func 1) :else nil)
         func-params (cond (> (count func) 2) (nth func 2) :else nil)]
-
     (cond
       (and (nil? func-name) (> (count func) 1)) (_build-error 'cannot-set nil)
       (nil? func-name) (_build-error 'list-expected nil)
@@ -662,46 +665,24 @@
       (some? func-def-error) (list func-def-error amb)
       :else (let [func-name (nth func 1), func-body (rest (rest func))]
               (list func-name (actualizar-amb amb func-name (_add-lambda-to-func-body func-body)))))))
+
+
 ;;---------------------------------------------------------------------------------------------------;;
+(defn evaluar-if
+  "Evalua una forma 'if'. Devuelve una lista con el resultado y un ambiente eventualmente modificado."
+  [pred global-env local-env]
+  (let [conditon (nth pred 1)
+        false-path (cond (> (count pred) 3) (last pred) :else nil)
+        true-path (cond (some? false-path) (first (nthrest pred 2)) :else (first (nthnext pred 2)))
+        res-condition  (nth (evaluar conditon global-env local-env) 0)]
 
-; user=> (evaluar-if '(if t) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (nil (nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if 7) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (nil (nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if nil) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (nil (nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if x) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (nil (nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if t 9) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (9 (nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if z 9) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (9 (nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if w 9) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (9 (nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if r 9) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; ((*error* unbound-symbol r) (nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if nil 9) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (nil (nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if nil 9 z) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; ("hola" (nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if nil 9 1 2 3 z) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; ("hola" (nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if nil 9 w) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (3 (nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if nil 9 8) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (8 (nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if nil a 8) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (8 (nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if (gt 2 0) a 8) '(gt gt nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; ((*error* unbound-symbol a) (gt gt nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if (gt 0 2) a 8) '(gt gt nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (8 (gt gt nil nil t t v 1 w 3 x 6))
-; user=> (evaluar-if '(if (gt 0 2) a (setq m 8)) '(gt gt nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))
-; (8 (gt gt nil nil t t v 1 w 3 x 6 m 8))
-;; (defn evaluar-if
-;;   "Evalua una forma 'if'. Devuelve una lista con el resultado y un ambiente eventualmente modificado.")
+    (cond
+      (not (nil? res-condition)) (evaluar true-path global-env local-env)
+      :else (evaluar false-path global-env local-env))))
 
+;(println (evaluar-if '(if (gt 0 2) a 8) '(gt gt nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola")))
 
+(println (evaluar '(gt 0 2) '(gt gt nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola")))
 ; user=> (evaluar-or '(or) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
 ; (nil (nil nil t t w 5 x 4))
 ; user=> (evaluar-or '(or nil) '(nil nil t t w 5 x 4) '(x 1 y nil z 3))
