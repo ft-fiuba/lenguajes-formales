@@ -666,6 +666,7 @@
       :else (let [func-name (nth func 1), func-body (rest (rest func))]
               (list func-name (actualizar-amb amb func-name (_add-lambda-to-func-body func-body)))))))
 
+
 (defn evaluar-if
   "Evalua una forma 'if'. Devuelve una lista con el resultado y un ambiente eventualmente modificado."
   [pred global-env local-env]
@@ -677,8 +678,6 @@
     (cond
       (not (nil? res-condition)) (evaluar true-path global-env local-env)
       :else (evaluar false-path global-env local-env))))
-;;---------------------------------------------------------------------------------------------------;;
-
 
 
 (defn evaluar-or
@@ -686,37 +685,26 @@
   [pred global-env local-env]
   (let [value (_first-or-nil (filter (fn [e] (not (nil? e))) (rest pred)))]
     (evaluar value global-env local-env)))
+;;---------------------------------------------------------------------------------------------------;;
 
 
-; user=> (evaluar-setq '(setq) '(nil nil t t + add w 5 x 4) '(x 1 y nil z 3))
-; ((*error* list expected nil) (nil nil t t + add w 5 x 4))
-; user=> (evaluar-setq '(setq m) '(nil nil t t + add w 5 x 4) '(x 1 y nil z 3))
-; ((*error* list expected nil) (nil nil t t + add w 5 x 4))
-; user=> (evaluar-setq '(setq m 7) '(nil nil t t + add w 5 x 4) '(x 1 y nil z 3))
-; (7 (nil nil t t + add w 5 x 4 m 7))
-; user=> (evaluar-setq '(setq x 7) '(nil nil t t + add w 5 x 4) '(x 1 y nil z 3))
-; (7 (nil nil t t + add w 5 x 7))
-; user=> (evaluar-setq '(setq x (+ x 1)) '(nil nil t t + add w 5 x 4) '(x 1 y nil z 3))
-; (2 (nil nil t t + add w 5 x 2))
-; user=> (evaluar-setq '(setq x (+ x 1)) '(nil nil t t + add w 5 x 4) '(y nil z 3))
-; (5 (nil nil t t + add w 5 x 5))
-; user=> (evaluar-setq '(setq nil) '(nil nil t t + add w 5 x 4) '(x 1 y nil z 3))
-; ((*error* list expected nil) (nil nil t t + add w 5 x 4))
-; user=> (evaluar-setq '(setq nil 7) '(nil nil t t + add w 5 x 4) '(x 1 y nil z 3))
-; ((*error* cannot-set nil) (nil nil t t + add w 5 x 4))
-; user=> (evaluar-setq '(setq 7 8) '(nil nil t t + add w 5 x 4) '(x 1 y nil z 3))
-; ((*error* symbol expected 7) (nil nil t t + add w 5 x 4))
-; user=> (evaluar-setq '(setq x 7 m (+ x 7)) '(nil nil t t + add w 5 x 4) '(x 1 y nil z 3))
-; (8 (nil nil t t + add w 5 x 7 m 8))
-; user=> (evaluar-setq '(setq x 7 m (+ x 7)) '(nil nil t t + add w 5 x 4) '(y nil z 3))
-; (14 (nil nil t t + add w 5 x 7 m 14))
-; user=> (evaluar-setq '(setq x 7 y) '(nil nil t t + add w 5 x 4) '(y nil z 3))
-; ((*error* list expected nil) (nil nil t t + add w 5 x 7))
-; user=> (evaluar-setq '(setq x 7 y 8 z 9) '(nil nil t t + add w 5 x 4) '(y nil z 3))
-; (9 (nil nil t t + add w 5 x 7 y 8 z 9))
-;; (defn evaluar-setq
-;;   "Evalua una forma 'setq'. Devuelve una lista con el resultado y un ambiente actualizado.")
 
+
+(defn _evaluar-setq-rec [pred global-env local-env]
+  (cond
+    (> 2 (count pred)) (list (_build-error 'list-expected nil) global-env)
+    :else (let [var-name  (nth pred 0)
+                var-value (first (evaluar (nth pred 1) global-env local-env))]
+            (cond
+              (nil? var-name) (list (_build-error 'cannot-set nil) global-env)
+              (not (symbol? var-name)) (list (_build-error 'symbol-expected var-name) global-env)
+              (= 2 (count pred)) (list var-value (actualizar-amb global-env var-name var-value))
+              :else (_evaluar-setq-rec (nthnext pred 2) (actualizar-amb global-env var-name var-value) local-env)))))
+
+(defn evaluar-setq
+  "Evalua una forma 'setq'. Devuelve una lista con el resultado y un ambiente actualizado."
+  [pred global-env local-env]
+  (_evaluar-setq-rec (rest pred) global-env local-env))
 
 ; Al terminar de cargar el archivo en el REPL de Clojure (con load-file), se debe devolver true.
 
