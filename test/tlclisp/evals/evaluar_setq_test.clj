@@ -2,10 +2,6 @@
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [evaluar-setq]]))
 
-
-
-
-
 (deftest evaluar-setq-test
   (testing "Evaluar con variable que no existe en ambiente la agrega y devuelve su valor"
     (is (= '(7 (nil nil t t + add w 5 x 4 m 7)) (evaluar-setq '(setq m 7) '(nil nil t t + add w 5 x 4) '(x 1 y nil z 3)))))

@@ -51,9 +51,6 @@
   (testing "Lista vacia y lista con nil no son iguales"
     (is (not (igual? () '(nil)))))
 
-  (testing "Dos strings de distinto case son iguales"
-    (is (and (igual? "A" "a") (igual? "a" "A"))))
-
   (testing "Una quote y un string son iguales sin oimportar el case"
     (is (and (igual? 'a "A") (igual? 'a "a") (igual? 'A "A") (igual? 'A "a")))))
 

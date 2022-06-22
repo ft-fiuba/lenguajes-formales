@@ -403,10 +403,10 @@
       (> real-length n) (list "*error*" "too-many-args")
       (< real-length n) (list "*error*" "too-few-args")
       :else n)))
-;;---------------------------------------------------------------------------------------------------;;
 
-;;---------------------------------------------------------------------------------------------------;;
-(defn _is-lisp-nil
+
+
+(defn _is-lisp-nil?
   "Devuelte true si el valor es equlivalente a nil en TLC-LISP"
   [n]
   (or (nil? n) (= n '()) (= n 'NIL)))
@@ -414,10 +414,13 @@
 (defn igual?
   "Verifica la igualdad entre dos elementos al estilo de TLC-LISP (case-insensitive)."
   [a, b]
-  (let [str-a (str (cond (_is-lisp-nil a) nil :else a))
-        str-b (str (cond (_is-lisp-nil b) nil :else b))]
-    (= (lower-case str-a) (lower-case str-b))))
-
+  (cond
+    (_is-lisp-nil? a) (_is-lisp-nil? b)
+    (and (list? a) (list? b)) (reduce (fn [i,j] (and i j)) (map igual? a b))
+    (and (symbol? a) (symbol? b)) (= (lower-case (str a)) (lower-case (str b)))
+    (and (string? a) (symbol? b)) (= (lower-case (str a)) (lower-case (str b)))
+    (and (symbol? a) (string? b)) (= (lower-case (str a)) (lower-case (str b)))
+    :else (= a b)))
 ;;---------------------------------------------------------------------------------------------------;;
 
 ;;---------------------------------------------------------------------------------------------------;;
@@ -428,16 +431,16 @@
     (not (list? L)) false
     (empty? L) false
     :else (igual? (nth L 0) "*error*")))
-;;---------------------------------------------------------------------------------------------------;;
 
-;;---------------------------------------------------------------------------------------------------;;
+
+
 (defn revisar-fnc
   "Si la lista es un mensaje de error, lo devuelve; si no, devuelve nil."
   [L]
   (cond (error? L) L :else nil))
-;;---------------------------------------------------------------------------------------------------;;
 
-;;---------------------------------------------------------------------------------------------------;;
+
+
 (defn _first-or-nil [L]
   (cond (empty? L) nil :else (first L)))
 
@@ -445,16 +448,10 @@
   "Devuelve el primer elemento que es un mensaje de error. Si no hay ninguno, devuelve nil."
   [L]
   (_first-or-nil (filter error? L)))
-;;---------------------------------------------------------------------------------------------------;;
 
 
 
 
-
-
-
-
-;;---------------------------------------------------------------------------------------------------;;
 (defn __amb-keys [A]
   (map (fn [t] (nth t 1))
        (filter (fn [t] (odd? (nth t 0))) (map list (range 1 (inc (count A))) A))))
@@ -481,9 +478,9 @@
   (let [encontrado (_get-key-value-pair-from-amb A key)]
     (cond (some? encontrado) (nth encontrado 1)
           :else (list "*error*" "unbound-symbol" key))))
-;;---------------------------------------------------------------------------------------------------;;
 
-;;---------------------------------------------------------------------------------------------------;;
+
+
 (defn _key-exists-in-amb [A, key]
   (not (nil? (_get-key-value-pair-from-amb A key))))
 
@@ -542,7 +539,7 @@
   (let [args-error (_check-is-empty-arg args)]
     (cond
       (some? args-error) args-error
-      :else (let [val (read)] (cond (_is-lisp-nil val) nil :else val)))))
+      :else (let [val (read)] (cond (_is-lisp-nil? val) nil :else val)))))
 
 (defn fnc-env
   "Devuelve la fusion de los ambientes global y local."
@@ -622,10 +619,6 @@
 
 
 
-
-
-
-
 ;;---------------------------------------------------------------------------------------------------;;
 (defn evaluar-escalar
   "Evalua una expresion escalar consultando, si corresponde, 
@@ -685,9 +678,6 @@
   [pred global-env local-env]
   (let [value (_first-or-nil (filter (fn [e] (not (nil? e))) (rest pred)))]
     (evaluar value global-env local-env)))
-;;---------------------------------------------------------------------------------------------------;;
-
-
 
 
 (defn _evaluar-setq-rec [pred global-env local-env]
@@ -706,6 +696,13 @@
   [pred global-env local-env]
   (_evaluar-setq-rec (rest pred) global-env local-env))
 
+
 ; Al terminar de cargar el archivo en el REPL de Clojure (con load-file), se debe devolver true.
+;;---------------------------------------------------------------------------------------------------;;
+
+
+
+
+
 
 
