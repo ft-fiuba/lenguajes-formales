@@ -270,6 +270,7 @@
     (igual? fnc 'append)  (fnc-append lae)
     (igual? fnc 'cons)    (fnc-cons lae)
     (igual? fnc 'equal)   (fnc-equal lae)
+    (igual? fnc 'env)     (fnc-env lae amb-global amb-local)
     (igual? fnc 'first)   (fnc-first lae)
     (igual? fnc 'ge)      (fnc-ge lae)
     (igual? fnc 'gt)      (fnc-gt lae)
@@ -393,7 +394,16 @@
 ; FUNCIONES QUE DEBEN SER IMPLEMENTADAS PARA COMPLETAR EL INTERPRETE DE TLC-LISP
 ; (ADEMAS DE COMPLETAR 'EVALUAR' Y 'APLICAR-FUNCION-PRIMITIVA'):
 
-;;---------------------------------------------------------------------------------------------------;;
+
+;; ------------------------------------------------------------------------------------------------ 
+;; -----------------------------------------AXULIAR------------------------------------------------ 
+;; ------------------------------------------------------------------------------------------------
+(defn -build-error
+  ([msg] (list '*error* msg))
+  ([msg, value] (list '*error* msg value)))
+
+
+
 (defn controlar-aridad
   "Si la longitud de una lista dada es la esperada, devuelve esa longitud.
    Si no, devuelve una lista con un mensaje de error (una lista con *error* como primer elemento)."
@@ -406,7 +416,7 @@
 
 
 
-(defn _is-lisp-nil?
+(defn -is-lisp-nil?
   "Devuelte true si el valor es equlivalente a nil en TLC-LISP"
   [n]
   (or (nil? n) (= n '()) (= n 'NIL)))
@@ -415,22 +425,27 @@
   "Verifica la igualdad entre dos elementos al estilo de TLC-LISP (case-insensitive)."
   [a, b]
   (cond
-    (_is-lisp-nil? a) (_is-lisp-nil? b)
+    (-is-lisp-nil? a) (-is-lisp-nil? b)
     (and (list? a) (list? b)) (reduce (fn [i,j] (and i j)) (map igual? a b))
     (and (symbol? a) (symbol? b)) (= (lower-case (str a)) (lower-case (str b)))
     (and (string? a) (symbol? b)) (= (lower-case (str a)) (lower-case (str b)))
     (and (symbol? a) (string? b)) (= (lower-case (str a)) (lower-case (str b)))
     :else (= a b)))
-;;---------------------------------------------------------------------------------------------------;;
 
-;;---------------------------------------------------------------------------------------------------;;
+
+
+(defn -first-or-nil
+  "Devuelve el primer elemento de la lista. Si esta vacia, devuelve nil"
+  [L]
+  (cond (empty? L) nil :else (first L)))
+
 (defn error?
-  "Devuelve true o false, segun sea o no el arg. un mensaje de error (una lista con *error* como primer elemento)."
+  "Devuelve true o false, segun sea o no el arg. un mensaje de error 
+  (una lista con *error* como primer elemento)."
   [L]
   (cond
     (not (list? L)) false
-    (empty? L) false
-    :else (igual? (nth L 0) "*error*")))
+    (igual? (-first-or-nil L) '*error*) true))
 
 
 
@@ -441,179 +456,208 @@
 
 
 
-(defn _first-or-nil [L]
-  (cond (empty? L) nil :else (first L)))
-
 (defn revisar-lae
   "Devuelve el primer elemento que es un mensaje de error. Si no hay ninguno, devuelve nil."
   [L]
-  (_first-or-nil (filter error? L)))
+  (-first-or-nil (filter error? L)))
 
 
 
 
-(defn __amb-keys [A]
+(defn --env-keys [A]
   (map (fn [t] (nth t 1))
        (filter (fn [t] (odd? (nth t 0))) (map list (range 1 (inc (count A))) A))))
 
-(defn __amb-values [A]
+(defn --env-vals [A]
   (map (fn [t] (nth t 1))
        (filter (fn [t] (even? (nth t 0))) (map list (range 1 (inc (count A))) A))))
 
-(defn __tuple-has-key [T, key]
+(defn --keyval-has-key [T, key]
   (igual? key (nth T 0)))
 
-(defn _amb-to-tuples [A]
-  (map list (__amb-keys A) (__amb-values A)))
+(defn -env-to-keyval-tuples [A]
+  (map list (--env-keys A) (--env-vals A)))
 
-(defn _get-key-value-pair-from-amb [A, key]
-  (_first-or-nil
-   (filter (fn [t] (__tuple-has-key t key)) (_amb-to-tuples A))))
+(defn -get-keyval-from-env-with-key [A, key]
+  (-first-or-nil
+   (filter (fn [t] (--keyval-has-key t key)) (-env-to-keyval-tuples A))))
 
 (defn buscar
   "Busca una clave en un ambiente (una lista con claves en las posiciones
    impares [1, 3, 5...] y valores en las pares [2, 4, 6...] y devuelve el 
    valor asociado. Devuelve un mensaje de error si no la encuentra."
   [key, A]
-  (let [encontrado (_get-key-value-pair-from-amb A key)]
+  (let [encontrado (-get-keyval-from-env-with-key A key)]
     (cond (some? encontrado) (nth encontrado 1)
-          :else (list "*error*" "unbound-symbol" key))))
+          :else (-build-error 'unbound-symbol key))))
 
 
 
-(defn _key-exists-in-amb [A, key]
-  (not (nil? (_get-key-value-pair-from-amb A key))))
+(defn -key-exists-in-env [A key]
+  (some? (-get-keyval-from-env-with-key A key)))
 
-(defn _replace-if-tuple-has-key [T, key, new-value]
-  (cond (__tuple-has-key T key) (list key new-value) :else T))
+(defn -replace-if-keyval-is-from-key [T key new-value]
+  (cond (--keyval-has-key T key) (list key new-value) :else T))
 
 (defn actualizar-amb
   "Devuelve un ambiente actualizado con una clave (nombre de la variable o funcion) y su valor. 
   Si el valor es un error, el ambiente no se modifica. De lo contrario, se le carga o reemplaza el valor."
-  [A, key, value]
+  [A key value]
   (cond
     (error? value) A
-    (not (_key-exists-in-amb A key)) (fnc-append (list A (list key value)))
-    :else (flatten (map (fn [t] (_replace-if-tuple-has-key t key value)) (_amb-to-tuples A)))))
-;;---------------------------------------------------------------------------------------------------;;
+    (not (-key-exists-in-env A key)) (concat A (list key value))
+    :else (flatten (map (fn [t] (-replace-if-keyval-is-from-key t key value)) (-env-to-keyval-tuples A)))))
+;; ------------------------------------------------------------------------------------------------
+;; ------------------------------------------------------------------------------------------------
+;; ------------------------------------------------------------------------------------------------
 
 
-
-;;---------------------------------------------------------------------------------------------------;;
-(defn _build-error
-  ([msg] (list '*error* msg))
-  ([msg, value] (list '*error* msg value)))
-
-(defn _check-num-args [args, expected]
+;; ------------------------------------------------------------------------------------------------ 
+;; -----------------------------------------PRIMITIVAS--------------------------------------------- 
+;; ------------------------------------------------------------------------------------------------
+(defn -check-min-args [args min-expected]
   (cond
-    (> (count args) expected) (_build-error 'too-many-args)
-    (< (count args) expected) (_build-error 'too-few-args)
+    (> min-expected (count args)) (-build-error 'too-few-args)
     :else nil))
 
-(defn _check-is-empty-arg [arg]
+(defn -check-num-args [args expected]
   (cond
-    (= '() arg) nil
-    :else (_build-error 'not-implemented)))
+    (> (count args) expected) (-build-error 'too-many-args)
+    (< (count args) expected) (-build-error 'too-few-args)
+    :else nil))
+
+(defn -check-is-empty-arg [arg]
+  (cond
+    (seq arg) (-build-error 'not-facu) :else nil))
+
+
 
 (defn fnc-append
   "Devuelve el resultado de fusionar 2 sublistas."
   [args]
-  (let [args-error (_check-num-args args 2)]
+  (let [args-error (-check-num-args args 2)]
     (cond
       (some? args-error) args-error
       ; Returns a seq on the collection. 
       ; If the collection is  empty, returns nil.
       :else (seq (concat (nth args 0) (nth args 1))))))
 
+
+
 (defn fnc-equal
   "Compara 2 elementos. Si son iguales, devuelve t. Si no, nil."
   [args]
-  (let [args-error (_check-num-args args 2)]
+  (let [args-error (-check-num-args args 2)]
     (cond
       (some? args-error) args-error
       :else (cond (igual? (nth args 0) (nth args 1)) 't :else nil))))
 
+
+
 (defn fnc-read
   "Devuelve la lectura de un elemento de TLC-LISP desde la terminal/consola."
   [args]
-  (let [args-error (_check-is-empty-arg args)]
+  (let [args-error (-check-is-empty-arg args)]
     (cond
       (some? args-error) args-error
-      :else (let [val (read)] (cond (_is-lisp-nil? val) nil :else val)))))
+      :else (let [val (read)] (cond (-is-lisp-nil? val) nil :else val)))))
+
+
 
 (defn fnc-env
   "Devuelve la fusion de los ambientes global y local."
-  [arg, local-env, global-env]
-  (let [args-error (_check-is-empty-arg arg)]
+  [arg local-env global-env]
+  (let [args-error (-check-is-empty-arg arg)]
     (cond
       ; return another error instead of default
-      (some? args-error) (_build-error 'too-many-args)
+      (some? args-error) (-build-error 'too-many-args)
       :else (fnc-append (list local-env global-env)))))
+
+
 
 (defn fnc-terpri
   "Imprime un salto de línea y devuelve nil."
   [args]
-  (let [args-error (_check-is-empty-arg args)]
+  (let [args-error (-check-is-empty-arg args)]
     (cond
-      (some? args-error) args-error
-      :else (println "\n"))))
+      (some? args-error) args-error :else (println))))
+
+
+
+(defn -first-not-number [L]
+  (first (filter (fn [e] (not (number? e))) L)))
 
 (defn fnc-add
   "Suma los elementos de una lista. Minimo 2 elementos."
   [args]
-  (cond
-    (>= 1 (count args)) (_build-error 'too-few-args)
-    (not-every? number? args) (_build-error 'number-expected (first (filter (fn [e] (not (number? e))) args)))
-    :else (reduce + args)))
+  (let [args-error (-check-min-args args 2)]
+    (cond
+      (some? args-error) args-error
+      (not-every? number? args) (-build-error 'number-expected (-first-not-number args))
+      :else (reduce + args))))
+
+
+
 
 (defn fnc-sub
   "Resta los elementos de un lista. Minimo 1 elemento."
   [args]
-  (cond
-    (empty? args) (_build-error 'too-few-args)
-    (= 1 (count args)) (- (nth args 0))
-    (not-every? number? args) (_build-error 'number-expected (first (filter (fn [e] (not (number? e))) args)))
-    :else (reduce - args)))
+  (let [args-error (-check-min-args args 1)]
+    (cond
+      (some? args-error) args-error
+      (not-every? number? args) (-build-error 'number-expected (-first-not-number args))
+      (= 1 (count args)) (- (nth args 0))
+      :else (reduce - args))))
+
+
 
 (defn fnc-lt
   "Devuelve t si el primer numero es menor que el segundo; si no, nil."
   [args]
-  (let [args-error (_check-num-args args 2)]
+  (let [args-error (-check-num-args args 2)]
     (cond
       (some? args-error) args-error
-      (not (number? (nth args 0))) (_build-error 'number-expected (nth args 0))
-      (not (number? (nth args 1))) (_build-error 'number-expected (nth args 1))
+      (not (number? (nth args 0))) (-build-error 'number-expected (nth args 0))
+      (not (number? (nth args 1))) (-build-error 'number-expected (nth args 1))
       :else (cond (< (nth args 0) (nth args 1)) 't :else nil))))
+
+
 
 (defn fnc-gt
   "Devuelve t si el primer numero es mayor que el segundo; si no, nil."
   [args]
-  (let [args-error (_check-num-args args 2)]
+  (let [args-error (-check-num-args args 2)]
     (cond
       (some? args-error) args-error
-      (not (number? (nth args 0))) (_build-error 'number-expected (nth args 0))
-      (not (number? (nth args 1))) (_build-error 'number-expected (nth args 1))
+      (not (number? (nth args 0))) (-build-error 'number-expected (nth args 0))
+      (not (number? (nth args 1))) (-build-error 'number-expected (nth args 1))
       :else (cond (> (nth args 0) (nth args 1)) 't :else nil))))
+
+
 
 (defn fnc-ge
   "Devuelve t si el primer numero es mayor o igual que el segundo; si no, nil."
   [args]
-  (let [args-error (_check-num-args args 2)]
+  (let [args-error (-check-num-args args 2)]
     (cond
       (some? args-error) args-error
-      (not (number? (nth args 0))) (_build-error 'number-expected (nth args 0))
-      (not (number? (nth args 1))) (_build-error 'number-expected (nth args 1))
+      (not (number? (nth args 0))) (-build-error 'number-expected (nth args 0))
+      (not (number? (nth args 1))) (-build-error 'number-expected (nth args 1))
       :else (cond (>= (nth args 0) (nth args 1)) 't :else nil))))
+
+
 
 (defn fnc-reverse
   "Devuelve una lista con sus elementos en orden inverso."
   [args]
-  (let [args-error (_check-num-args args 1)]
+  (let [args-error (-check-num-args args 1)]
     (cond
       (some? args-error) args-error
-      (not (list? (nth args 0))) (_build-error 'list-expected (nth args 0))
+      (not (list? (nth args 0))) (-build-error 'list-expected (nth args 0))
       :else (reverse (nth args 0)))))
-;;---------------------------------------------------------------------------------------------------;;
+;; ------------------------------------------------------------------------------------------------
+;; ------------------------------------------------------------------------------------------------
+;; ------------------------------------------------------------------------------------------------
 
 
 
@@ -631,7 +675,7 @@
                     ; local-env has priority
                     (not (error? val-in-local)) (list val-in-local global-env)
                     (not (error? val-in-global)) (list val-in-global global-env)
-                    :else (list (_build-error 'unbound-symbol e) global-env)))
+                    :else (list (-build-error 'unbound-symbol e) global-env)))
 
     :else (list e global-env)))
 
@@ -643,11 +687,11 @@
   (let [func-name (cond (> (count func) 1) (nth func 1) :else nil)
         func-params (cond (> (count func) 2) (nth func 2) :else nil)]
     (cond
-      (and (nil? func-name) (> (count func) 1)) (_build-error 'cannot-set nil)
-      (nil? func-name) (_build-error 'list-expected nil)
-      (nil? func-params) (_build-error 'list-expected nil)
-      (not (list? func-params)) (_build-error 'list-expected func-params)
-      (not (symbol? func-name)) (_build-error 'symbol-expected func-name)
+      (and (nil? func-name) (> (count func) 1)) (-build-error 'cannot-set nil)
+      (nil? func-name) (-build-error 'list-expected nil)
+      (nil? func-params) (-build-error 'list-expected nil)
+      (not (list? func-params)) (-build-error 'list-expected func-params)
+      (not (symbol? func-name)) (-build-error 'symbol-expected func-name)
       :else nil)))
 
 (defn evaluar-de

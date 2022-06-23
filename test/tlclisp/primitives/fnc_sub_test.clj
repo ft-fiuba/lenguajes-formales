@@ -2,7 +2,7 @@
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [fnc-sub]]))
 
-(deftest fnc-add-test
+(deftest fnc-sub-test
   (testing "Llamar a la funcion sin argumentos devuelve error"
     (is (= '(*error* too-few-args) (fnc-sub ()))))
 
