@@ -2,10 +2,6 @@
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [evaluar-escalar]]))
 
-
-; user=> 
-; 
-
 (deftest evaluar-escalar-test
   (testing "Evaluar int devuelve a si mismo y el primer ambiente"
     (is (= '(32 (v 1 w 3 x 6)) (evaluar-escalar 32 '(v 1 w 3 x 6) '(x 5 y 11 z "hola")))))

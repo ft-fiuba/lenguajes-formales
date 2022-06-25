@@ -670,9 +670,10 @@
    y un ambiente."
   [e, global-env, local-env]
   (cond
-    (symbol? e) (let [val-in-local (buscar e local-env) val-in-global (buscar e global-env)]
+    (symbol? e) (let [val-in-local (buscar e local-env)
+                      val-in-global (buscar e global-env)]
                   (cond
-                    ; local-env has priority
+                    ; local-env has priority ver global-env
                     (not (error? val-in-local)) (list val-in-local global-env)
                     (not (error? val-in-global)) (list val-in-global global-env)
                     :else (list (-build-error 'unbound-symbol e) global-env)))
@@ -680,10 +681,11 @@
     :else (list e global-env)))
 
 
-(defn _add-lambda-to-func-body [func-body]
+
+(defn -add-lambda-to-func-body [func-body]
   (conj func-body 'lambda))
 
-(defn _check-func-def [func]
+(defn -check-func-def [func]
   (let [func-name (cond (> (count func) 1) (nth func 1) :else nil)
         func-params (cond (> (count func) 2) (nth func 2) :else nil)]
     (cond
@@ -696,42 +698,55 @@
 
 (defn evaluar-de
   "Evalua una forma 'de'. Devuelve una lista con el resultado y un ambiente actualizado con la definicion."
-  [func, amb]
-  (let [func-def-error (_check-func-def func)]
+  [func env]
+  (let [func-def-error (-check-func-def func)]
     (cond
-      (some? func-def-error) (list func-def-error amb)
-      :else (let [func-name (nth func 1), func-body (rest (rest func))]
-              (list func-name (actualizar-amb amb func-name (_add-lambda-to-func-body func-body)))))))
+      (some? func-def-error) (list func-def-error env)
+      :else (let [func-name (nth func 1),
+                  func-body (rest (rest func))]
+              (list func-name (actualizar-amb env func-name (-add-lambda-to-func-body func-body)))))))
+
 
 
 (defn evaluar-if
   "Evalua una forma 'if'. Devuelve una lista con el resultado y un ambiente eventualmente modificado."
   [pred global-env local-env]
-  (let [conditon (nth pred 1)
-        false-path (cond (> (count pred) 3) (last pred) :else nil)
-        true-path (cond (some? false-path) (first (nthrest pred 2)) :else (first (nthnext pred 2)))
-        res-condition  (nth (evaluar conditon global-env local-env) 0)]
+  (let [aux-pred   (rest pred) ; remove 'if from pred 
+        condition  (first aux-pred)
+        true-path  (second aux-pred)
+        ; si al mentos tiene la forma de if (cond) a b
+        false-path (cond (> (count aux-pred) 2) (last aux-pred) :else nil)
+        result-condition (first (evaluar condition global-env local-env))]
 
     (cond
-      (not (nil? res-condition)) (evaluar true-path global-env local-env)
-      :else (evaluar false-path global-env local-env))))
+      (igual? nil result-condition) (evaluar false-path global-env local-env)
+      :else (evaluar true-path global-env local-env))))
 
+
+
+(defn -evaluar-or-rec
+  [pred amb-global local-env]
+  (let [res (evaluar (first pred) amb-global local-env)]
+    (cond
+      (empty? pred) (list nil (second res))
+      (first res) res
+      :else (-evaluar-or-rec (rest pred) (second res) local-env))))
 
 (defn evaluar-or
   "Evalua una forma 'or'. Devuelve una lista con el resultado y un ambiente."
   [pred global-env local-env]
-  (let [value (_first-or-nil (filter (fn [e] (not (nil? e))) (rest pred)))]
-    (evaluar value global-env local-env)))
+  (-evaluar-or-rec (rest pred) global-env local-env))
+
 
 
 (defn _evaluar-setq-rec [pred global-env local-env]
   (cond
-    (> 2 (count pred)) (list (_build-error 'list-expected nil) global-env)
+    (> 2 (count pred)) (list (-build-error 'list-expected nil) global-env)
     :else (let [var-name  (nth pred 0)
                 var-value (first (evaluar (nth pred 1) global-env local-env))]
             (cond
-              (nil? var-name) (list (_build-error 'cannot-set nil) global-env)
-              (not (symbol? var-name)) (list (_build-error 'symbol-expected var-name) global-env)
+              (nil? var-name) (list (-build-error 'cannot-set nil) global-env)
+              (not (symbol? var-name)) (list (-build-error 'symbol-expected var-name) global-env)
               (= 2 (count pred)) (list var-value (actualizar-amb global-env var-name var-value))
               :else (_evaluar-setq-rec (nthnext pred 2) (actualizar-amb global-env var-name var-value) local-env)))))
 
@@ -739,7 +754,6 @@
   "Evalua una forma 'setq'. Devuelve una lista con el resultado y un ambiente actualizado."
   [pred global-env local-env]
   (_evaluar-setq-rec (rest pred) global-env local-env))
-
 
 ; Al terminar de cargar el archivo en el REPL de Clojure (con load-file), se debe devolver true.
 ;;---------------------------------------------------------------------------------------------------;;
