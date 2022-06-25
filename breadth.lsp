@@ -27,6 +27,6 @@
 (de exito (grafobusq)
     (prin3 "Exito !!!") (terpri)
     (prin3 "Prof ....... ") (prin3 (- (length (first grafobusq)) 1)) (terpri)
-    (prin3 "Solucion ... ") (prin3 (reverse (first grafobusq))) (terpri) t)
-
+    (prin3 "Solucion ... ") (prin3 (reverse (first grafobusq)))
+    t)
 'Carga-exitosa-de-breadth-lsp

@@ -1,7 +1,6 @@
-(ns tlclisp.revisar-fnc-test
+(ns tlclisp.auxiliaries.revisar-fnc-test
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [revisar-fnc]]))
-
 
 (deftest revisar-fnc-test
   (testing "Revisar una lista con error como string devudelve la lista"

@@ -1,4 +1,4 @@
-(ns tlclisp.igual-test
+(ns tlclisp.auxiliaries.igual-test
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [igual?]]))
 

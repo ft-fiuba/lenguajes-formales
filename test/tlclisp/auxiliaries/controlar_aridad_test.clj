@@ -1,4 +1,4 @@
-(ns tlclisp.controlar-aridad-test
+(ns tlclisp.auxiliaries.controlar-aridad-test
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [controlar-aridad]]))
 

@@ -1,4 +1,4 @@
-(ns tlclisp.actualizar-amb-test
+(ns tlclisp.auxiliaries.actualizar-amb-test
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [actualizar-amb]]))
 

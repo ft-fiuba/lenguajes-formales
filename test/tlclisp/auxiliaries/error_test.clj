@@ -1,4 +1,4 @@
-(ns tlclisp.error-test
+(ns tlclisp.auxiliaries.error-test
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [error?]]))
 

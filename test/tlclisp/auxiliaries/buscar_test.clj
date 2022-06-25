@@ -1,4 +1,4 @@
-(ns tlclisp.buscar-test
+(ns tlclisp.auxiliaries.buscar-test
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [buscar]]))
 

@@ -1,11 +1,6 @@
-(ns tlclisp.revisar-lae-test
+(ns tlclisp.auxiliaries.revisar-lae-test
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [revisar-lae]]))
-
-
-; user=> ())
-; (*error* too-few-args)
-
 
 (deftest revisar-lae-test
   (testing "Si la lista no contiene errores devuelve nil"
