@@ -653,8 +653,8 @@
   (let [args-error (-check-num-args args 1)]
     (cond
       (some? args-error) args-error
-      (not (list? (nth args 0))) (-build-error 'list-expected (nth args 0))
-      :else (reverse (nth args 0)))))
+      (not (seq? (first args))) (-build-error 'list-expected (first args))
+      :else (reverse (first args)))))
 ;; ------------------------------------------------------------------------------------------------
 ;; ------------------------------------------------------------------------------------------------
 ;; ------------------------------------------------------------------------------------------------
