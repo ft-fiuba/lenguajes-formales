@@ -6,7 +6,7 @@
   (testing "El mismo numero devuelve que son iguales"
     (is (= 't (fnc-equal '(1 1)))))
 
-  (testing "Dos caracteres son iguales sin importar el case"
+  (testing "Dos simbolos son iguales sin importar el case"
     (is (= 't (fnc-equal '(A a))))
     (is (= 't (fnc-equal '(A A))))
     (is (= 't (fnc-equal '(a a)))))
@@ -20,7 +20,7 @@
   (testing "Dos numeros distintos no son iguales"
     (is (nil? (fnc-equal '(1 2)))))
 
-  (testing "Dos caracteres distintos no son iguales"
+  (testing "Dos simbolos distintos no son iguales"
     (is (nil? (fnc-equal '(A B)))))
 
   (testing "Un string y un numero no son iguales"

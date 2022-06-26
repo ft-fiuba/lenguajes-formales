@@ -364,6 +364,7 @@
     :else (do (print (map #(if (igual? % nil) nil %) (first lae))) (flush) (first lae))))
 
 
+
 (defn fnc-rest
   "Devuelve una lista sin su 1ra. posición."
   [lae]
@@ -426,7 +427,7 @@
   [a, b]
   (cond
     (-is-lisp-nil? a) (-is-lisp-nil? b)
-    (and (list? a) (list? b)) (reduce (fn [i,j] (and i j)) (map igual? a b))
+    (and (seq? a) (seq? b)) (reduce (fn [i,j] (and i j)) (map igual? a b))
     (and (symbol? a) (symbol? b)) (= (lower-case (str a)) (lower-case (str b)))
     (and (string? a) (symbol? b)) (= (lower-case (str a)) (lower-case (str b)))
     (and (symbol? a) (string? b)) (= (lower-case (str a)) (lower-case (str b)))
@@ -444,7 +445,7 @@
   (una lista con *error* como primer elemento)."
   [L]
   (cond
-    (not (list? L)) false
+    (not (seq? L)) false
     (igual? (-first-or-nil L) '*error*) true))
 
 
@@ -499,6 +500,9 @@
 (defn -replace-if-keyval-is-from-key [T key new-value]
   (cond (--keyval-has-key T key) (list key new-value) :else T))
 
+(defn -one-level-flatten [L]
+  (apply concat L))
+
 (defn actualizar-amb
   "Devuelve un ambiente actualizado con una clave (nombre de la variable o funcion) y su valor. 
   Si el valor es un error, el ambiente no se modifica. De lo contrario, se le carga o reemplaza el valor."
@@ -506,7 +510,7 @@
   (cond
     (error? value) A
     (not (-key-exists-in-env A key)) (concat A (list key value))
-    :else (flatten (map (fn [t] (-replace-if-keyval-is-from-key t key value)) (-env-to-keyval-tuples A)))))
+    :else (-one-level-flatten (map (fn [t] (-replace-if-keyval-is-from-key t key value)) (-env-to-keyval-tuples A)))))
 ;; ------------------------------------------------------------------------------------------------
 ;; ------------------------------------------------------------------------------------------------
 ;; ------------------------------------------------------------------------------------------------
@@ -538,7 +542,7 @@
   (let [args-error (-check-num-args args 2)]
     (cond
       (some? args-error) args-error
-      ; Returns a seq on the collection. 
+      ; Returns a seq on th)e collection. 
       ; If the collection is  empty, returns nil.
       :else (seq (concat (nth args 0) (nth args 1))))))
 
@@ -694,7 +698,7 @@
       (and (nil? func-name) (> (count func) 1)) (-build-error 'cannot-set nil)
       (nil? func-name) (-build-error 'list-expected nil)
       (nil? func-params) (-build-error 'list-expected nil)
-      (not (list? func-params)) (-build-error 'list-expected func-params)
+      (not (seq? func-params)) (-build-error 'list-expected func-params)
       (not (symbol? func-name)) (-build-error 'symbol-expected func-name)
       :else nil)))
 
@@ -707,7 +711,6 @@
       :else (let [func-name (nth func 1),
                   func-body (rest (rest func))]
               (list func-name (actualizar-amb env func-name (-add-lambda-to-func-body func-body)))))))
-
 
 
 (defn evaluar-if
