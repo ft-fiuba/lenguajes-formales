@@ -411,8 +411,8 @@
   [L, n]
   (let [real-length (count L)]
     (cond
-      (> real-length n) (list "*error*" "too-many-args")
-      (< real-length n) (list "*error*" "too-few-args")
+      (> real-length n) (-build-error 'too-many-args)
+      (< real-length n) (-build-error 'too-few-args)
       :else n)))
 
 
@@ -734,7 +734,7 @@
   (let [res (evaluar (first pred) amb-global local-env)]
     (cond
       (empty? pred) (list nil (second res))
-      (first res) res
+      (not (-is-lisp-nil? (first res))) res
       :else (-evaluar-or-rec (rest pred) (second res) local-env))))
 
 (defn evaluar-or
