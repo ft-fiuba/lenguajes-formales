@@ -7,4 +7,4 @@
     (is (nil? (fnc-terpri ()))))
 
   (testing "No pasar una lista vacia como parametro devuelve error"
-    (is '(*error* not-implemented) (fnc-terpri '(1)))))
+    (is (= '(*error* not-implemented) (fnc-terpri '(1))))))

@@ -532,7 +532,7 @@
 
 (defn -check-is-empty-arg [arg]
   (cond
-    (seq arg) (-build-error 'not-facu) :else nil))
+    (seq arg) (-build-error 'not-implemented) :else nil))
 
 
 

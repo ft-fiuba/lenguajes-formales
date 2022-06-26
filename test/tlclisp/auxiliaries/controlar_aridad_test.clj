@@ -4,13 +4,10 @@
 
 (deftest controlar-aridad-test
   (testing "Devuelve error si la lista tiene mas elementos de lo esperado"
-    (let [result (controlar-aridad '(a b c) 2)]
-      (is (and (= (nth result 0) '*error*) (= (nth result 1) 'too-many-args)))))
+    (is (= '(*error* too-many-args) (controlar-aridad '(a b c) 2))))
 
   (testing "Devuelve error si la lista tiene menos elementos de lo esperado"
-    (let [result (controlar-aridad '(a b c) 4)]
-      (is (and (= (nth result 0) '*error*) (= (nth result 1) 'too-few-args)))))
+    (is (= '(*error* too-few-args) (controlar-aridad '(a b c) 4))))
 
   (testing "Devueleve correactamente el tamaño de la aridad coincide"
-    (let [result (controlar-aridad '(a b c) 3)]
-      (is (= 3 result)))))
+    (is (= 3 (controlar-aridad '(a b c) 3)))))

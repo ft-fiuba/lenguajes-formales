@@ -4,7 +4,7 @@
 
 
 
-(deftest evaluar-escalar-test
+(deftest evaluar-if-test
   (testing "Evaluar condicion sin definir resultados deuvelve nil"
     (is (= '(nil (nil nil t t v 1 w 3 x 6)) (evaluar-if '(if t) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))))
     (is (= '(nil (nil nil t t v 1 w 3 x 6)) (evaluar-if '(if 7) '(nil nil t t v 1 w 3 x 6) '(x 5 y 11 z "hola"))))

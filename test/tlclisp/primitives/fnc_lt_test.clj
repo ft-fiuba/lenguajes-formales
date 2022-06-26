@@ -2,11 +2,11 @@
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [fnc-lt]]))
 
-(deftest fnc-gt-test
-  (testing "Llamar a la funcion sin argumentos devuelve error∫"
+(deftest fnc-lt-test
+  (testing "Llamar a la funcion sin argumentos devuelve error"
     (is (= '(*error* too-few-args) (fnc-lt ()))))
 
-  (testing "Llamar a la funcion con un solo argumento devuelve error∫"
+  (testing "Llamar a la funcion con un solo argumento devuelve error"
     (is (= '(*error* too-few-args) (fnc-lt '(1)))))
 
   (testing "Determina el menor correctamente"

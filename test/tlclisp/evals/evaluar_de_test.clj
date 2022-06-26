@@ -2,7 +2,7 @@
   (:require [clojure.test :refer :all]
             [tlclisp.interpreter :refer [evaluar-de]]))
 
-(deftest evaluar-escalar-test
+(deftest evaluar-de-test
   (testing "Actualiza el ambiente con la funcion correctamente"
     (is (= '(f (x 1 f (lambda (x)))) (evaluar-de '(de f (x)) '(x 1))))
     (is (= '(f (x 1 f (lambda (x) (+ x 1)))) (evaluar-de '(de f (x) (+ x 1)) '(x 1))))
