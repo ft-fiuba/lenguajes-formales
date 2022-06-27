@@ -192,7 +192,6 @@
     (> (count (next expre)) 1) (list (list '*error* 'not-implemented) amb-global)
     :else (list \space (cargar-arch amb-global amb-local (second expre)))))
 
-
 (defn cargar-arch
   ([amb-global amb-local arch]
    (let [nomb (first (evaluar arch amb-global amb-local))]
@@ -287,7 +286,6 @@
     (igual? fnc 'sub)     (fnc-sub lae)
     (igual? fnc 'terpri)  (fnc-terpri lae)
     ; Las funciones primitivas reciben argumentos y retornan un valor (son puras)
-
     :else (list '*error* 'non-applicable-type fnc)))
 
 
@@ -744,7 +742,7 @@
 
 
 
-(defn _evaluar-setq-rec [pred global-env local-env]
+(defn -evaluar-setq-rec [pred global-env local-env]
   (cond
     (> 2 (count pred)) (list (-build-error 'list-expected nil) global-env)
     :else (let [var-name  (nth pred 0)
@@ -753,12 +751,12 @@
               (nil? var-name) (list (-build-error 'cannot-set nil) global-env)
               (not (symbol? var-name)) (list (-build-error 'symbol-expected var-name) global-env)
               (= 2 (count pred)) (list var-value (actualizar-amb global-env var-name var-value))
-              :else (_evaluar-setq-rec (nthnext pred 2) (actualizar-amb global-env var-name var-value) local-env)))))
+              :else (-evaluar-setq-rec (nthnext pred 2) (actualizar-amb global-env var-name var-value) local-env)))))
 
 (defn evaluar-setq
   "Evalua una forma 'setq'. Devuelve una lista con el resultado y un ambiente actualizado."
   [pred global-env local-env]
-  (_evaluar-setq-rec (rest pred) global-env local-env))
+  (-evaluar-setq-rec (rest pred) global-env local-env))
 ; Al terminar de cargar el archivo en el REPL de Clojure (con load-file), se debe devolver true.
 ;; ------------------------------------------------------------------------------------------------
 ;; ------------------------------------------------------------------------------------------------
